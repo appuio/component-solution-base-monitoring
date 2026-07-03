@@ -28,7 +28,7 @@ local params = inv.parameters.solution_base_monitoring;
 
 local defaultRuleLabels = {
   syn: 'true',
-  syn_component: 'openshift4-monitoring',
+  syn_component: 'solution-base-monitoring',
   syn_team: 'aldebaran',
 };
 

@@ -15,7 +15,7 @@ spec:
     labels:
       severity: warning
       syn: 'true'
-      syn_component: openshift4-monitoring
+      syn_component: solution-base-monitoring
       syn_team: aldebaran
   alert:SYN_KubePersistentVolumeFillingUp:
     annotations:
@@ -39,7 +39,7 @@ spec:
     labels:
       severity: critical
       syn: 'true'
-      syn_component: openshift4-monitoring
+      syn_component: solution-base-monitoring
       syn_team: aldebaran
   alert:SYN_KubePersistentVolumeFillingUpWarning:
     annotations:
@@ -65,7 +65,7 @@ spec:
     labels:
       severity: warning
       syn: 'true'
-      syn_component: openshift4-monitoring
+      syn_component: solution-base-monitoring
       syn_team: aldebaran
   alert:SYN_KubePersistentVolumeInodesFillingUp:
     annotations:
@@ -89,7 +89,7 @@ spec:
     labels:
       severity: critical
       syn: 'true'
-      syn_component: openshift4-monitoring
+      syn_component: solution-base-monitoring
       syn_team: aldebaran
   alert:SYN_KubePersistentVolumeInodesFillingUpWarning:
     annotations:
@@ -115,5 +115,5 @@ spec:
     labels:
       severity: warning
       syn: 'true'
-      syn_component: openshift4-monitoring
+      syn_component: solution-base-monitoring
       syn_team: aldebaran

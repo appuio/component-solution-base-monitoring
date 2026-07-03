@@ -15,7 +15,7 @@ spec:
     labels:
       severity: warning
       syn: 'true'
-      syn_component: openshift4-monitoring
+      syn_component: solution-base-monitoring
       syn_team: aldebaran
   alert:SYN_KubeDaemonSetMisScheduled:
     annotations:
@@ -28,7 +28,7 @@ spec:
     labels:
       severity: warning
       syn: 'true'
-      syn_component: openshift4-monitoring
+      syn_component: solution-base-monitoring
       syn_team: aldebaran
   alert:SYN_KubeDaemonSetNotScheduled:
     annotations:
@@ -43,7 +43,7 @@ spec:
     labels:
       severity: warning
       syn: 'true'
-      syn_component: openshift4-monitoring
+      syn_component: solution-base-monitoring
       syn_team: aldebaran
   alert:SYN_KubeDaemonSetRolloutStuck:
     annotations:
@@ -78,7 +78,7 @@ spec:
     labels:
       severity: warning
       syn: 'true'
-      syn_component: openshift4-monitoring
+      syn_component: solution-base-monitoring
       syn_team: aldebaran
   alert:SYN_KubeDeploymentGenerationMismatch:
     annotations:
@@ -93,7 +93,7 @@ spec:
     labels:
       severity: warning
       syn: 'true'
-      syn_component: openshift4-monitoring
+      syn_component: solution-base-monitoring
       syn_team: aldebaran
   alert:SYN_KubeDeploymentRolloutStuck:
     annotations:
@@ -107,7 +107,7 @@ spec:
     labels:
       severity: warning
       syn: 'true'
-      syn_component: openshift4-monitoring
+      syn_component: solution-base-monitoring
       syn_team: aldebaran
   alert:SYN_KubeJobNotCompleted:
     annotations:
@@ -121,7 +121,7 @@ spec:
     labels:
       severity: warning
       syn: 'true'
-      syn_component: openshift4-monitoring
+      syn_component: solution-base-monitoring
       syn_team: aldebaran
   alert:SYN_KubePdbNotEnoughHealthyPods:
     annotations:
@@ -139,7 +139,7 @@ spec:
     labels:
       severity: warning
       syn: 'true'
-      syn_component: openshift4-monitoring
+      syn_component: solution-base-monitoring
       syn_team: aldebaran
   alert:SYN_KubePodCrashLooping:
     annotations:
@@ -152,7 +152,7 @@ spec:
     labels:
       severity: warning
       syn: 'true'
-      syn_component: openshift4-monitoring
+      syn_component: solution-base-monitoring
       syn_team: aldebaran
   alert:SYN_KubePodNotReady:
     annotations:
@@ -173,7 +173,7 @@ spec:
     labels:
       severity: warning
       syn: 'true'
-      syn_component: openshift4-monitoring
+      syn_component: solution-base-monitoring
       syn_team: aldebaran
   alert:SYN_KubeStatefulSetGenerationMismatch:
     annotations:
@@ -188,7 +188,7 @@ spec:
     labels:
       severity: warning
       syn: 'true'
-      syn_component: openshift4-monitoring
+      syn_component: solution-base-monitoring
       syn_team: aldebaran
   alert:SYN_KubeStatefulSetReplicasMismatch:
     annotations:
@@ -209,7 +209,7 @@ spec:
     labels:
       severity: warning
       syn: 'true'
-      syn_component: openshift4-monitoring
+      syn_component: solution-base-monitoring
       syn_team: aldebaran
   alert:SYN_KubeStatefulSetUpdateNotRolledOut:
     annotations:
@@ -238,5 +238,5 @@ spec:
     labels:
       severity: warning
       syn: 'true'
-      syn_component: openshift4-monitoring
+      syn_component: solution-base-monitoring
       syn_team: aldebaran

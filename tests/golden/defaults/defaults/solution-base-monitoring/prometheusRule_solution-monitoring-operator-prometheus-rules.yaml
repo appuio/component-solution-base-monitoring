@@ -28,7 +28,7 @@ spec:
     labels:
       severity: warning
       syn: 'true'
-      syn_component: openshift4-monitoring
+      syn_component: solution-base-monitoring
       syn_team: aldebaran
   alert:SYN_KubePodNotScheduled:
     annotations:
@@ -44,5 +44,5 @@ spec:
     labels:
       severity: warning
       syn: 'true'
-      syn_component: openshift4-monitoring
+      syn_component: solution-base-monitoring
       syn_team: aldebaran
