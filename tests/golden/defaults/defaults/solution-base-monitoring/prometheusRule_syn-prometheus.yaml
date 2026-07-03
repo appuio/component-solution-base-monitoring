@@ -10,7 +10,9 @@ spec:
         The persistent volume {{ $labels.persistentvolume }} {{ with $labels.cluster -}} on Cluster {{ . }} {{- end }} has status {{ $labels.phase }}.
       summary: PersistentVolume is having issues with provisioning.
     expr: |
-      kube_persistentvolume_status_phase{phase=~"Failed|Pending",job="kube-state-metrics"} > 0
+      kube_persistentvolume_status_phase{phase=~"Failed|Pending",job="kube-state-metrics"}
+      * on(namespace) group_left(label_syn_team) kube_namespace_labels
+      > 0
     for: 5m
     labels:
       severity: warning
@@ -30,7 +32,9 @@ spec:
         kubelet_volume_stats_capacity_bytes{job="kubelet", metrics_path="/metrics"}
       ) < 0.03
       and
-      kubelet_volume_stats_used_bytes{job="kubelet", metrics_path="/metrics"} > 0
+      kubelet_volume_stats_used_bytes{job="kubelet", metrics_path="/metrics"}
+      * on(namespace) group_left(label_syn_team) kube_namespace_labels
+      > 0
       unless on(cluster, namespace, persistentvolumeclaim)
       kube_persistentvolumeclaim_access_mode{ access_mode="ReadOnlyMany"} == 1
       unless on(cluster, namespace, persistentvolumeclaim)
@@ -52,7 +56,9 @@ spec:
         kubelet_volume_stats_available_bytes{job="kubelet", metrics_path="/metrics"}
           /
         kubelet_volume_stats_capacity_bytes{job="kubelet", metrics_path="/metrics"}
-      ) < 0.15
+      )
+      * on(namespace) group_left(label_syn_team) kube_namespace_labels
+      < 0.15
       and
       kubelet_volume_stats_used_bytes{job="kubelet", metrics_path="/metrics"} > 0
       and
@@ -78,7 +84,9 @@ spec:
         kubelet_volume_stats_inodes_free{job="kubelet", metrics_path="/metrics"}
           /
         kubelet_volume_stats_inodes{job="kubelet", metrics_path="/metrics"}
-      ) < 0.03
+      )
+      * on(namespace) group_left(label_syn_team) kube_namespace_labels
+      < 0.03
       and
       kubelet_volume_stats_inodes_used{job="kubelet", metrics_path="/metrics"} > 0
       unless on(cluster, namespace, persistentvolumeclaim)
@@ -102,7 +110,9 @@ spec:
         kubelet_volume_stats_inodes_free{job="kubelet", metrics_path="/metrics"}
           /
         kubelet_volume_stats_inodes{job="kubelet", metrics_path="/metrics"}
-      ) < 0.15
+      )
+      * on(namespace) group_left(label_syn_team) kube_namespace_labels
+      < 0.15
       and
       kubelet_volume_stats_inodes_used{job="kubelet", metrics_path="/metrics"} > 0
       and

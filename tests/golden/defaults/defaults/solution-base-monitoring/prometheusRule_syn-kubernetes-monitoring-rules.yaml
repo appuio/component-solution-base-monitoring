@@ -10,7 +10,9 @@ spec:
         pod/{{ $labels.pod }} in namespace {{ $labels.namespace }} on container {{ $labels.container}} has been in waiting state for longer than 1 hour. (reason: "{{ $labels.reason }}").
       summary: Pod container waiting longer than 1 hour
     expr: |
-      kube_pod_container_status_waiting_reason{reason!="CrashLoopBackOff", job="kube-state-metrics"} > 0
+      kube_pod_container_status_waiting_reason{reason!="CrashLoopBackOff", job="kube-state-metrics"}
+       * on(namespace) group_left(label_syn_team) kube_namespace_labels
+       > 0
     for: 1h
     labels:
       severity: warning
@@ -23,7 +25,9 @@ spec:
         {{ $value }} Pods of DaemonSet {{ $labels.namespace }}/{{ $labels.daemonset }} are running where they are not supposed to run.
       summary: DaemonSet pods are misscheduled.
     expr: |
-      kube_daemonset_status_number_misscheduled{job="kube-state-metrics"} > 0
+      kube_daemonset_status_number_misscheduled{job="kube-state-metrics"}
+      * on(namespace) group_left(label_syn_team) kube_namespace_labels
+      > 0
     for: 15m
     labels:
       severity: warning
@@ -38,7 +42,9 @@ spec:
     expr: |
       kube_daemonset_status_desired_number_scheduled{job="kube-state-metrics"}
         -
-      kube_daemonset_status_current_number_scheduled{job="kube-state-metrics"} > 0
+      kube_daemonset_status_current_number_scheduled{job="kube-state-metrics"}
+      * on(namespace) group_left(label_syn_team) kube_namespace_labels
+      > 0
     for: 10m
     labels:
       severity: warning
@@ -54,6 +60,7 @@ spec:
       (
         (
           kube_daemonset_status_current_number_scheduled{job="kube-state-metrics"}
+          * on(namespace) group_left(label_syn_team) kube_namespace_labels
             !=
           kube_daemonset_status_desired_number_scheduled{job="kube-state-metrics"}
         ) or (
@@ -87,6 +94,7 @@ spec:
       summary: Deployment generation mismatch due to possible roll-back
     expr: |
       kube_deployment_status_observed_generation{job="kube-state-metrics"}
+      * on(namespace) group_left(label_syn_team) kube_namespace_labels
         !=
       kube_deployment_metadata_generation{job="kube-state-metrics"}
     for: 15m
@@ -102,6 +110,7 @@ spec:
       summary: Deployment rollout is not progressing.
     expr: |
       kube_deployment_status_condition{condition="Progressing", status="false",job="kube-state-metrics"}
+      * on(namespace) group_left(label_syn_team) kube_namespace_labels
       != 0
     for: 15m
     labels:
@@ -117,7 +126,9 @@ spec:
     expr: |
       time() - max by(namespace, job_name, cluster) (kube_job_status_start_time{job="kube-state-metrics"}
         and
-      kube_job_status_active{job="kube-state-metrics"} > 0) > 43200
+      kube_job_status_active{job="kube-state-metrics"} > 0)
+      * on(namespace) group_left(label_syn_team) kube_namespace_labels
+      > 43200
     labels:
       severity: warning
       syn: 'true'
@@ -134,6 +145,7 @@ spec:
         -
         kube_poddisruptionbudget_status_current_healthy{job="kube-state-metrics"}
       )
+      * on(namespace) group_left(label_syn_team) kube_namespace_labels
       > 0
     for: 15m
     labels:
@@ -147,7 +159,9 @@ spec:
         Pod {{ $labels.namespace }}/{{ $labels.pod }} ({{ $labels.container }}) is in waiting state (reason: "CrashLoopBackOff").
       summary: Pod is crash looping.
     expr: |
-      max_over_time(kube_pod_container_status_waiting_reason{reason="CrashLoopBackOff", job="kube-state-metrics"}[5m]) >= 1
+      max_over_time(kube_pod_container_status_waiting_reason{reason="CrashLoopBackOff", job="kube-state-metrics"}[5m])
+       * on(namespace) group_left(label_syn_team) kube_namespace_labels
+       >= 1
     for: 15m
     labels:
       severity: warning
@@ -168,7 +182,9 @@ spec:
         ) * on(namespace, pod, cluster) group_left(owner_kind) topk by(namespace, pod, cluster) (
           1, max by(namespace, pod, owner_kind, cluster) (kube_pod_owner{owner_kind!="Job"})
         )
-      ) > 0
+      )
+      * on(namespace) group_left(label_syn_team) kube_namespace_labels
+      > 0
     for: 15m
     labels:
       severity: warning
@@ -182,6 +198,7 @@ spec:
       summary: StatefulSet generation mismatch due to possible roll-back
     expr: |
       kube_statefulset_status_observed_generation{job="kube-state-metrics"}
+      * on(namespace) group_left(label_syn_team) kube_namespace_labels
         !=
       kube_statefulset_metadata_generation{job="kube-state-metrics"}
     for: 15m
@@ -198,6 +215,7 @@ spec:
     expr: |
       (
         kube_statefulset_status_replicas_ready{job="kube-state-metrics"}
+        * on(namespace) group_left(label_syn_team) kube_namespace_labels
           !=
         kube_statefulset_replicas{job="kube-state-metrics"}
       ) and (
@@ -229,6 +247,7 @@ spec:
             !=
           kube_statefulset_status_replicas_updated{job="kube-state-metrics"}
         )
+        * on(namespace) group_left(label_syn_team) kube_namespace_labels
       )  and on(namespace, statefulset, job, cluster) (
         changes(kube_statefulset_status_replicas_updated{job="kube-state-metrics"}[5m])
           ==

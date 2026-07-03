@@ -32,14 +32,19 @@ local defaultRuleLabels = {
   syn_team: 'aldebaran',
 };
 
-local rule(name, base) = {
-  ['alert:%s' % name]: std.mergePatch(
-    {
-      labels: defaultRuleLabels,
-    },
-    base,
-  ),
-};
+local rule(name, base) =
+  local expr = base.expr % {
+    teamJoin: '* on(namespace) group_left(label_syn_team) kube_namespace_labels',
+  };
+  local rule = std.mergePatch(base, { expr: expr });
+  {
+    ['alert:%s' % name]: std.mergePatch(
+      {
+        labels: defaultRuleLabels,
+      },
+      rule,
+    ),
+  };
 
 local monitoringOperatorRules = {
   apiVersion: 'monitoring.coreos.com/v1',
@@ -70,7 +75,9 @@ local monitoringOperatorRules = {
           changes(kube_deployment_status_replicas_updated{job="kube-state-metrics"}[5m])
             ==
           0
-        )) * on() group_left cluster:control_plane:all_nodes_ready) > 0
+        )) * on() group_left cluster:control_plane:all_nodes_ready)
+         %(teamJoin)s
+         > 0
       |||,
       'for': '15m',
       labels: {
@@ -89,6 +96,7 @@ local monitoringOperatorRules = {
       },
       expr: |||
         last_over_time(kube_pod_status_unschedulable[5m])
+        %(teamJoin)s
           == 1
       |||,
       'for': '30m',
@@ -114,7 +122,9 @@ local synKubernetesMonitoringRules = {
         summary: 'Pod is crash looping.',
       },
       expr: |||
-        max_over_time(kube_pod_container_status_waiting_reason{reason="CrashLoopBackOff", job="kube-state-metrics"}[5m]) >= 1
+        max_over_time(kube_pod_container_status_waiting_reason{reason="CrashLoopBackOff", job="kube-state-metrics"}[5m])
+         %(teamJoin)s
+         >= 1
       |||,
       'for': '15m',
       labels: {
@@ -138,7 +148,9 @@ local synKubernetesMonitoringRules = {
           ) * on(namespace, pod, cluster) group_left(owner_kind) topk by(namespace, pod, cluster) (
             1, max by(namespace, pod, owner_kind, cluster) (kube_pod_owner{owner_kind!="Job"})
           )
-        ) > 0
+        )
+        %(teamJoin)s
+        > 0
       |||,
       'for': '15m',
       labels: {
@@ -155,6 +167,7 @@ local synKubernetesMonitoringRules = {
       },
       expr: |||
         kube_deployment_status_observed_generation{job="kube-state-metrics"}
+        %(teamJoin)s
           !=
         kube_deployment_metadata_generation{job="kube-state-metrics"}
       |||,
@@ -173,6 +186,7 @@ local synKubernetesMonitoringRules = {
       },
       expr: |||
         kube_deployment_status_condition{condition="Progressing", status="false",job="kube-state-metrics"}
+        %(teamJoin)s
         != 0
       |||,
       'for': '15m',
@@ -191,6 +205,7 @@ local synKubernetesMonitoringRules = {
       expr: |||
         (
           kube_statefulset_status_replicas_ready{job="kube-state-metrics"}
+          %(teamJoin)s
             !=
           kube_statefulset_replicas{job="kube-state-metrics"}
         ) and (
@@ -214,6 +229,7 @@ local synKubernetesMonitoringRules = {
       },
       expr: |||
         kube_statefulset_status_observed_generation{job="kube-state-metrics"}
+        %(teamJoin)s
           !=
         kube_statefulset_metadata_generation{job="kube-state-metrics"}
       |||,
@@ -243,6 +259,7 @@ local synKubernetesMonitoringRules = {
               !=
             kube_statefulset_status_replicas_updated{job="kube-state-metrics"}
           )
+          %(teamJoin)s
         )  and on(namespace, statefulset, job, cluster) (
           changes(kube_statefulset_status_replicas_updated{job="kube-state-metrics"}[5m])
             ==
@@ -266,6 +283,7 @@ local synKubernetesMonitoringRules = {
         (
           (
             kube_daemonset_status_current_number_scheduled{job="kube-state-metrics"}
+            %(teamJoin)s
               !=
             kube_daemonset_status_desired_number_scheduled{job="kube-state-metrics"}
           ) or (
@@ -301,7 +319,9 @@ local synKubernetesMonitoringRules = {
         summary: 'Pod container waiting longer than 1 hour',
       },
       expr: |||
-        kube_pod_container_status_waiting_reason{reason!="CrashLoopBackOff", job="kube-state-metrics"} > 0
+        kube_pod_container_status_waiting_reason{reason!="CrashLoopBackOff", job="kube-state-metrics"}
+         %(teamJoin)s
+         > 0
       |||,
       'for': '1h',
       labels: {
@@ -319,7 +339,9 @@ local synKubernetesMonitoringRules = {
       expr: |||
         kube_daemonset_status_desired_number_scheduled{job="kube-state-metrics"}
           -
-        kube_daemonset_status_current_number_scheduled{job="kube-state-metrics"} > 0
+        kube_daemonset_status_current_number_scheduled{job="kube-state-metrics"}
+        %(teamJoin)s
+        > 0
       |||,
       'for': '10m',
       labels: {
@@ -335,7 +357,9 @@ local synKubernetesMonitoringRules = {
         summary: 'DaemonSet pods are misscheduled.',
       },
       expr: |||
-        kube_daemonset_status_number_misscheduled{job="kube-state-metrics"} > 0
+        kube_daemonset_status_number_misscheduled{job="kube-state-metrics"}
+        %(teamJoin)s
+        > 0
       |||,
       'for': '15m',
       labels: {
@@ -353,7 +377,9 @@ local synKubernetesMonitoringRules = {
       expr: |||
         time() - max by(namespace, job_name, cluster) (kube_job_status_start_time{job="kube-state-metrics"}
           and
-        kube_job_status_active{job="kube-state-metrics"} > 0) > 43200
+        kube_job_status_active{job="kube-state-metrics"} > 0)
+        %(teamJoin)s
+        > 43200
       |||,
       labels: {
         severity: 'warning',
@@ -373,6 +399,7 @@ local synKubernetesMonitoringRules = {
           -
           kube_poddisruptionbudget_status_current_healthy{job="kube-state-metrics"}
         )
+        %(teamJoin)s
         > 0
       |||,
       'for': '15m',
@@ -405,7 +432,9 @@ local persistentVolumeRules = {
           kubelet_volume_stats_capacity_bytes{job="kubelet", metrics_path="/metrics"}
         ) < 0.03
         and
-        kubelet_volume_stats_used_bytes{job="kubelet", metrics_path="/metrics"} > 0
+        kubelet_volume_stats_used_bytes{job="kubelet", metrics_path="/metrics"}
+        %(teamJoin)s
+        > 0
         unless on(cluster, namespace, persistentvolumeclaim)
         kube_persistentvolumeclaim_access_mode{ access_mode="ReadOnlyMany"} == 1
         unless on(cluster, namespace, persistentvolumeclaim)
@@ -430,7 +459,9 @@ local persistentVolumeRules = {
           kubelet_volume_stats_available_bytes{job="kubelet", metrics_path="/metrics"}
             /
           kubelet_volume_stats_capacity_bytes{job="kubelet", metrics_path="/metrics"}
-        ) < 0.15
+        )
+        %(teamJoin)s
+        < 0.15
         and
         kubelet_volume_stats_used_bytes{job="kubelet", metrics_path="/metrics"} > 0
         and
@@ -459,7 +490,9 @@ local persistentVolumeRules = {
           kubelet_volume_stats_inodes_free{job="kubelet", metrics_path="/metrics"}
             /
           kubelet_volume_stats_inodes{job="kubelet", metrics_path="/metrics"}
-        ) < 0.03
+        )
+        %(teamJoin)s
+        < 0.03
         and
         kubelet_volume_stats_inodes_used{job="kubelet", metrics_path="/metrics"} > 0
         unless on(cluster, namespace, persistentvolumeclaim)
@@ -486,7 +519,9 @@ local persistentVolumeRules = {
           kubelet_volume_stats_inodes_free{job="kubelet", metrics_path="/metrics"}
             /
           kubelet_volume_stats_inodes{job="kubelet", metrics_path="/metrics"}
-        ) < 0.15
+        )
+        %(teamJoin)s
+        < 0.15
         and
         kubelet_volume_stats_inodes_used{job="kubelet", metrics_path="/metrics"} > 0
         and
@@ -510,7 +545,9 @@ local persistentVolumeRules = {
         summary: 'PersistentVolume is having issues with provisioning.',
       },
       expr: |||
-        kube_persistentvolume_status_phase{phase=~"Failed|Pending",job="kube-state-metrics"} > 0
+        kube_persistentvolume_status_phase{phase=~"Failed|Pending",job="kube-state-metrics"}
+        %(teamJoin)s
+        > 0
       |||,
       'for': '5m',
       labels: {

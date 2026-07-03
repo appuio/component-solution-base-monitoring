@@ -23,7 +23,9 @@ spec:
         changes(kube_deployment_status_replicas_updated{job="kube-state-metrics"}[5m])
           ==
         0
-      )) * on() group_left cluster:control_plane:all_nodes_ready) > 0
+      )) * on() group_left cluster:control_plane:all_nodes_ready)
+       * on(namespace) group_left(label_syn_team) kube_namespace_labels
+       > 0
     for: 15m
     labels:
       severity: warning
@@ -39,6 +41,7 @@ spec:
       summary: Pod cannot be scheduled.
     expr: |
       last_over_time(kube_pod_status_unschedulable[5m])
+      * on(namespace) group_left(label_syn_team) kube_namespace_labels
         == 1
     for: 30m
     labels:
