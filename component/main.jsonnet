@@ -87,9 +87,103 @@ local monitoringOperatorRules = {
   },
 };
 
+local synKubernetesMonitoringRules = {
+  apiVersion: 'monitoring.coreos.com/v1',
+  kind: 'PrometheusRule',
+  metadata: {
+    name: 'syn-kubernetes-monitoring-rules',
+    namespace: params.namespace,
+  },
+  spec: {
+    'alert:SYN_KubePodCrashLooping': {
+      annotations: {
+        description: |||
+          Pod {{ $labels.namespace }}/{{ $labels.pod }} ({{ $labels.container }}) is in waiting state (reason: "CrashLoopBackOff").
+        |||,
+        summary: 'Pod is crash looping.',
+      },
+      expr: |||
+        max_over_time(kube_pod_container_status_waiting_reason{reason="CrashLoopBackOff", namespace=~"(appuio.*|cilium|default|kube-.*|nunki-.*|openshift-.*|syn.*)",namespace!~"(openshift-marketplace)",job="kube-state-metrics"}[5m]) >= 1
+      |||,
+      'for': '15m',
+      labels: {
+        severity: 'warning',
+        syn: 'true',
+        syn_component: 'openshift4-monitoring',
+        syn_team: 'aldebaran',
+      },
+    },
+    'alert:SYN_KubePodNotReady': {
+      annotations: {
+        description: |||
+          Pod {{ $labels.namespace }}/{{ $labels.pod }} has been in a non-ready state for longer than 15 minutes.
+        |||,
+        runbook_url: 'https://github.com/openshift/runbooks/blob/master/alerts/cluster-monitoring-operator/KubePodNotReady.md',
+        summary: 'Pod has been in a non-ready state for more than 15 minutes.',
+      },
+      expr: |||
+        sum by (namespace, pod, cluster) (
+          max by(namespace, pod, cluster) (
+            kube_pod_status_phase{namespace=~"(appuio.*|cilium|default|kube-.*|nunki-.*|openshift-.*|syn.*)",namespace!~"(openshift-marketplace)", job="kube-state-metrics", phase=~"Pending|Unknown"}
+            unless ignoring(phase) (kube_pod_status_unschedulable{job="kube-state-metrics"} == 1)
+          ) * on(namespace, pod, cluster) group_left(owner_kind) topk by(namespace, pod, cluster) (
+            1, max by(namespace, pod, owner_kind, cluster) (kube_pod_owner{owner_kind!="Job"})
+          )
+        ) > 0
+      |||,
+      'for': '15m',
+      labels: {
+        severity: 'warning',
+        syn: 'true',
+        syn_component: 'openshift4-monitoring',
+        syn_team: 'aldebaran',
+      },
+    },
+    'alert:SYN_KubeDeploymentGenerationMismatch': {
+      annotations: {
+        description: |||
+          Deployment generation for {{ $labels.namespace }}/{{ $labels.deployment }} does not match, this indicates that the Deployment has failed but has not been rolled back.
+        |||,
+        summary: 'Deployment generation mismatch due to possible roll-back',
+      },
+      expr: |||
+        kube_deployment_status_observed_generation{namespace=~"(appuio.*|cilium|default|kube-.*|nunki-.*|openshift-.*|syn.*)",namespace!~"(openshift-marketplace)",job="kube-state-metrics"}
+          !=
+        kube_deployment_metadata_generation{namespace=~"(appuio.*|cilium|default|kube-.*|nunki-.*|openshift-.*|syn.*)",namespace!~"(openshift-marketplace)",job="kube-state-metrics"}
+      |||,
+      'for': '15m',
+      labels: {
+        severity: 'warning',
+        syn: 'true',
+        syn_component: 'openshift4-monitoring',
+        syn_team: 'aldebaran',
+      },
+    },
+    'alert:SYN_KubeDeploymentRolloutStuck': {
+      annotations: {
+        description: |||
+          Rollout of deployment {{ $labels.namespace }}/{{ $labels.deployment }} is not progressing for longer than 15 minutes.
+        |||,
+        summary: 'Deployment rollout is not progressing.',
+      },
+      expr: |||
+        kube_deployment_status_condition{condition="Progressing", status="false",namespace=~"(appuio.*|cilium|default|kube-.*|nunki-.*|openshift-.*|syn.*)",namespace!~"(openshift-marketplace)",job="kube-state-metrics"}
+        != 0
+      |||,
+      'for': '15m',
+      labels: {
+        severity: 'warning',
+        syn: 'true',
+        syn_component: 'openshift4-monitoring',
+        syn_team: 'aldebaran',
+      },
+    },
+  },
+};
+
 {
   namespace: namespace,
 } + {
   ['prometheusRule_%s' % rule.metadata.name]: rule
-  for rule in [ monitoringOperatorRules ]
+  for rule in [ monitoringOperatorRules, synKubernetesMonitoringRules ]
 }
