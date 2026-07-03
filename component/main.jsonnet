@@ -63,11 +63,11 @@ local monitoringOperatorRules = {
       },
       expr: |||
         (((
-          kube_deployment_spec_replicas{namespace=~"(appuio.*|cilium|default|kube-.*|openshift-.*|syn.*)",namespace!~"(openshift-marketplace)",job="kube-state-metrics"}
+          kube_deployment_spec_replicas{job="kube-state-metrics"}
             >
-          kube_deployment_status_replicas_available{namespace=~"(appuio.*|cilium|default|kube-.*|openshift-.*|syn.*)",namespace!~"(openshift-marketplace)",job="kube-state-metrics"}
+          kube_deployment_status_replicas_available{job="kube-state-metrics"}
         ) and (
-          changes(kube_deployment_status_replicas_updated{namespace=~"(appuio.*|cilium|default|kube-.*|openshift-.*|syn.*)",namespace!~"(openshift-marketplace)",job="kube-state-metrics"}[5m])
+          changes(kube_deployment_status_replicas_updated{job="kube-state-metrics"}[5m])
             ==
           0
         )) * on() group_left cluster:control_plane:all_nodes_ready) > 0
@@ -88,7 +88,7 @@ local monitoringOperatorRules = {
         summary: 'Pod cannot be scheduled.',
       },
       expr: |||
-        last_over_time(kube_pod_status_unschedulable{namespace=~"(appuio.*|cilium|default|kube-.*|openshift-.*|syn.*)",namespace!~"(openshift-marketplace)"}[5m])
+        last_over_time(kube_pod_status_unschedulable[5m])
           == 1
       |||,
       'for': '30m',
@@ -114,7 +114,7 @@ local synKubernetesMonitoringRules = {
         summary: 'Pod is crash looping.',
       },
       expr: |||
-        max_over_time(kube_pod_container_status_waiting_reason{reason="CrashLoopBackOff", namespace=~"(appuio.*|cilium|default|kube-.*|nunki-.*|openshift-.*|syn.*)",namespace!~"(openshift-marketplace)",job="kube-state-metrics"}[5m]) >= 1
+        max_over_time(kube_pod_container_status_waiting_reason{reason="CrashLoopBackOff", job="kube-state-metrics"}[5m]) >= 1
       |||,
       'for': '15m',
       labels: {
@@ -133,7 +133,7 @@ local synKubernetesMonitoringRules = {
       expr: |||
         sum by (namespace, pod, cluster) (
           max by(namespace, pod, cluster) (
-            kube_pod_status_phase{namespace=~"(appuio.*|cilium|default|kube-.*|nunki-.*|openshift-.*|syn.*)",namespace!~"(openshift-marketplace)", job="kube-state-metrics", phase=~"Pending|Unknown"}
+            kube_pod_status_phase{ job="kube-state-metrics", phase=~"Pending|Unknown"}
             unless ignoring(phase) (kube_pod_status_unschedulable{job="kube-state-metrics"} == 1)
           ) * on(namespace, pod, cluster) group_left(owner_kind) topk by(namespace, pod, cluster) (
             1, max by(namespace, pod, owner_kind, cluster) (kube_pod_owner{owner_kind!="Job"})
@@ -154,9 +154,9 @@ local synKubernetesMonitoringRules = {
         summary: 'Deployment generation mismatch due to possible roll-back',
       },
       expr: |||
-        kube_deployment_status_observed_generation{namespace=~"(appuio.*|cilium|default|kube-.*|nunki-.*|openshift-.*|syn.*)",namespace!~"(openshift-marketplace)",job="kube-state-metrics"}
+        kube_deployment_status_observed_generation{job="kube-state-metrics"}
           !=
-        kube_deployment_metadata_generation{namespace=~"(appuio.*|cilium|default|kube-.*|nunki-.*|openshift-.*|syn.*)",namespace!~"(openshift-marketplace)",job="kube-state-metrics"}
+        kube_deployment_metadata_generation{job="kube-state-metrics"}
       |||,
       'for': '15m',
       labels: {
@@ -172,7 +172,7 @@ local synKubernetesMonitoringRules = {
         summary: 'Deployment rollout is not progressing.',
       },
       expr: |||
-        kube_deployment_status_condition{condition="Progressing", status="false",namespace=~"(appuio.*|cilium|default|kube-.*|nunki-.*|openshift-.*|syn.*)",namespace!~"(openshift-marketplace)",job="kube-state-metrics"}
+        kube_deployment_status_condition{condition="Progressing", status="false",job="kube-state-metrics"}
         != 0
       |||,
       'for': '15m',
@@ -190,11 +190,11 @@ local synKubernetesMonitoringRules = {
       },
       expr: |||
         (
-          kube_statefulset_status_replicas_ready{namespace=~"(appuio.*|cilium|default|kube-.*|nunki-.*|openshift-.*|syn.*)",namespace!~"(openshift-marketplace)",job="kube-state-metrics"}
+          kube_statefulset_status_replicas_ready{job="kube-state-metrics"}
             !=
-          kube_statefulset_replicas{namespace=~"(appuio.*|cilium|default|kube-.*|nunki-.*|openshift-.*|syn.*)",namespace!~"(openshift-marketplace)",job="kube-state-metrics"}
+          kube_statefulset_replicas{job="kube-state-metrics"}
         ) and (
-          changes(kube_statefulset_status_replicas_updated{namespace=~"(appuio.*|cilium|default|kube-.*|nunki-.*|openshift-.*|syn.*)",namespace!~"(openshift-marketplace)",job="kube-state-metrics"}[10m])
+          changes(kube_statefulset_status_replicas_updated{job="kube-state-metrics"}[10m])
             ==
           0
         )
@@ -213,9 +213,9 @@ local synKubernetesMonitoringRules = {
         summary: 'StatefulSet generation mismatch due to possible roll-back',
       },
       expr: |||
-        kube_statefulset_status_observed_generation{namespace=~"(appuio.*|cilium|default|kube-.*|nunki-.*|openshift-.*|syn.*)",namespace!~"(openshift-marketplace)",job="kube-state-metrics"}
+        kube_statefulset_status_observed_generation{job="kube-state-metrics"}
           !=
-        kube_statefulset_metadata_generation{namespace=~"(appuio.*|cilium|default|kube-.*|nunki-.*|openshift-.*|syn.*)",namespace!~"(openshift-marketplace)",job="kube-state-metrics"}
+        kube_statefulset_metadata_generation{job="kube-state-metrics"}
       |||,
       'for': '15m',
       labels: {
@@ -233,18 +233,18 @@ local synKubernetesMonitoringRules = {
       expr: |||
         (
           max by(namespace, statefulset, job, cluster) (
-            kube_statefulset_status_current_revision{namespace=~"(appuio.*|cilium|default|kube-.*|nunki-.*|openshift-.*|syn.*)",namespace!~"(openshift-marketplace)",job="kube-state-metrics"}
+            kube_statefulset_status_current_revision{job="kube-state-metrics"}
               unless
-            kube_statefulset_status_update_revision{namespace=~"(appuio.*|cilium|default|kube-.*|nunki-.*|openshift-.*|syn.*)",namespace!~"(openshift-marketplace)",job="kube-state-metrics"}
+            kube_statefulset_status_update_revision{job="kube-state-metrics"}
           )
             * on(namespace, statefulset, job, cluster)
           (
-            kube_statefulset_replicas{namespace=~"(appuio.*|cilium|default|kube-.*|nunki-.*|openshift-.*|syn.*)",namespace!~"(openshift-marketplace)",job="kube-state-metrics"}
+            kube_statefulset_replicas{job="kube-state-metrics"}
               !=
-            kube_statefulset_status_replicas_updated{namespace=~"(appuio.*|cilium|default|kube-.*|nunki-.*|openshift-.*|syn.*)",namespace!~"(openshift-marketplace)",job="kube-state-metrics"}
+            kube_statefulset_status_replicas_updated{job="kube-state-metrics"}
           )
         )  and on(namespace, statefulset, job, cluster) (
-          changes(kube_statefulset_status_replicas_updated{namespace=~"(appuio.*|cilium|default|kube-.*|nunki-.*|openshift-.*|syn.*)",namespace!~"(openshift-marketplace)",job="kube-state-metrics"}[5m])
+          changes(kube_statefulset_status_replicas_updated{job="kube-state-metrics"}[5m])
             ==
           0
         )
@@ -265,24 +265,24 @@ local synKubernetesMonitoringRules = {
       expr: |||
         (
           (
-            kube_daemonset_status_current_number_scheduled{namespace=~"(appuio.*|cilium|default|kube-.*|nunki-.*|openshift-.*|syn.*)",namespace!~"(openshift-marketplace)",job="kube-state-metrics"}
+            kube_daemonset_status_current_number_scheduled{job="kube-state-metrics"}
               !=
-            kube_daemonset_status_desired_number_scheduled{namespace=~"(appuio.*|cilium|default|kube-.*|nunki-.*|openshift-.*|syn.*)",namespace!~"(openshift-marketplace)",job="kube-state-metrics"}
+            kube_daemonset_status_desired_number_scheduled{job="kube-state-metrics"}
           ) or (
-            kube_daemonset_status_number_misscheduled{namespace=~"(appuio.*|cilium|default|kube-.*|nunki-.*|openshift-.*|syn.*)",namespace!~"(openshift-marketplace)",job="kube-state-metrics"}
+            kube_daemonset_status_number_misscheduled{job="kube-state-metrics"}
               !=
             0
           ) or (
-            kube_daemonset_status_updated_number_scheduled{namespace=~"(appuio.*|cilium|default|kube-.*|nunki-.*|openshift-.*|syn.*)",namespace!~"(openshift-marketplace)",job="kube-state-metrics"}
+            kube_daemonset_status_updated_number_scheduled{job="kube-state-metrics"}
               !=
-            kube_daemonset_status_desired_number_scheduled{namespace=~"(appuio.*|cilium|default|kube-.*|nunki-.*|openshift-.*|syn.*)",namespace!~"(openshift-marketplace)",job="kube-state-metrics"}
+            kube_daemonset_status_desired_number_scheduled{job="kube-state-metrics"}
           ) or (
-            kube_daemonset_status_number_available{namespace=~"(appuio.*|cilium|default|kube-.*|nunki-.*|openshift-.*|syn.*)",namespace!~"(openshift-marketplace)",job="kube-state-metrics"}
+            kube_daemonset_status_number_available{job="kube-state-metrics"}
               !=
-            kube_daemonset_status_desired_number_scheduled{namespace=~"(appuio.*|cilium|default|kube-.*|nunki-.*|openshift-.*|syn.*)",namespace!~"(openshift-marketplace)",job="kube-state-metrics"}
+            kube_daemonset_status_desired_number_scheduled{job="kube-state-metrics"}
           )
         ) and (
-          changes(kube_daemonset_status_updated_number_scheduled{namespace=~"(appuio.*|cilium|default|kube-.*|nunki-.*|openshift-.*|syn.*)",namespace!~"(openshift-marketplace)",job="kube-state-metrics"}[5m])
+          changes(kube_daemonset_status_updated_number_scheduled{job="kube-state-metrics"}[5m])
             ==
           0
         )
@@ -301,7 +301,7 @@ local synKubernetesMonitoringRules = {
         summary: 'Pod container waiting longer than 1 hour',
       },
       expr: |||
-        kube_pod_container_status_waiting_reason{reason!="CrashLoopBackOff", namespace=~"(appuio.*|cilium|default|kube-.*|nunki-.*|openshift-.*|syn.*)",namespace!~"(openshift-marketplace)",job="kube-state-metrics"} > 0
+        kube_pod_container_status_waiting_reason{reason!="CrashLoopBackOff", job="kube-state-metrics"} > 0
       |||,
       'for': '1h',
       labels: {
@@ -317,9 +317,9 @@ local synKubernetesMonitoringRules = {
         summary: 'DaemonSet pods are not scheduled.',
       },
       expr: |||
-        kube_daemonset_status_desired_number_scheduled{namespace=~"(appuio.*|cilium|default|kube-.*|nunki-.*|openshift-.*|syn.*)",namespace!~"(openshift-marketplace)",job="kube-state-metrics"}
+        kube_daemonset_status_desired_number_scheduled{job="kube-state-metrics"}
           -
-        kube_daemonset_status_current_number_scheduled{namespace=~"(appuio.*|cilium|default|kube-.*|nunki-.*|openshift-.*|syn.*)",namespace!~"(openshift-marketplace)",job="kube-state-metrics"} > 0
+        kube_daemonset_status_current_number_scheduled{job="kube-state-metrics"} > 0
       |||,
       'for': '10m',
       labels: {
@@ -335,7 +335,7 @@ local synKubernetesMonitoringRules = {
         summary: 'DaemonSet pods are misscheduled.',
       },
       expr: |||
-        kube_daemonset_status_number_misscheduled{namespace=~"(appuio.*|cilium|default|kube-.*|nunki-.*|openshift-.*|syn.*)",namespace!~"(openshift-marketplace)",job="kube-state-metrics"} > 0
+        kube_daemonset_status_number_misscheduled{job="kube-state-metrics"} > 0
       |||,
       'for': '15m',
       labels: {
@@ -351,9 +351,9 @@ local synKubernetesMonitoringRules = {
         summary: 'Job did not complete in time',
       },
       expr: |||
-        time() - max by(namespace, job_name, cluster) (kube_job_status_start_time{namespace=~"(appuio.*|cilium|default|kube-.*|nunki-.*|openshift-.*|syn.*)",namespace!~"(openshift-marketplace)",job="kube-state-metrics"}
+        time() - max by(namespace, job_name, cluster) (kube_job_status_start_time{job="kube-state-metrics"}
           and
-        kube_job_status_active{namespace=~"(appuio.*|cilium|default|kube-.*|nunki-.*|openshift-.*|syn.*)",namespace!~"(openshift-marketplace)",job="kube-state-metrics"} > 0) > 43200
+        kube_job_status_active{job="kube-state-metrics"} > 0) > 43200
       |||,
       labels: {
         severity: 'warning',
@@ -369,9 +369,9 @@ local synKubernetesMonitoringRules = {
       },
       expr: |||
         (
-          kube_poddisruptionbudget_status_desired_healthy{namespace=~"(appuio.*|cilium|default|kube-.*|nunki-.*|openshift-.*|syn.*)",namespace!~"(openshift-marketplace)",job="kube-state-metrics"}
+          kube_poddisruptionbudget_status_desired_healthy{job="kube-state-metrics"}
           -
-          kube_poddisruptionbudget_status_current_healthy{namespace=~"(appuio.*|cilium|default|kube-.*|nunki-.*|openshift-.*|syn.*)",namespace!~"(openshift-marketplace)",job="kube-state-metrics"}
+          kube_poddisruptionbudget_status_current_healthy{job="kube-state-metrics"}
         )
         > 0
       |||,
@@ -400,16 +400,16 @@ local persistentVolumeRules = {
       },
       expr: |||
         (
-          kubelet_volume_stats_available_bytes{namespace=~"(appuio.*|cilium|default|kube-.*|nunki-.*|openshift-.*|syn.*)",namespace!~"(openshift-marketplace)",job="kubelet", metrics_path="/metrics"}
+          kubelet_volume_stats_available_bytes{job="kubelet", metrics_path="/metrics"}
             /
-          kubelet_volume_stats_capacity_bytes{namespace=~"(appuio.*|cilium|default|kube-.*|nunki-.*|openshift-.*|syn.*)",namespace!~"(openshift-marketplace)",job="kubelet", metrics_path="/metrics"}
+          kubelet_volume_stats_capacity_bytes{job="kubelet", metrics_path="/metrics"}
         ) < 0.03
         and
-        kubelet_volume_stats_used_bytes{namespace=~"(appuio.*|cilium|default|kube-.*|nunki-.*|openshift-.*|syn.*)",namespace!~"(openshift-marketplace)",job="kubelet", metrics_path="/metrics"} > 0
+        kubelet_volume_stats_used_bytes{job="kubelet", metrics_path="/metrics"} > 0
         unless on(cluster, namespace, persistentvolumeclaim)
-        kube_persistentvolumeclaim_access_mode{namespace=~"(appuio.*|cilium|default|kube-.*|nunki-.*|openshift-.*|syn.*)",namespace!~"(openshift-marketplace)", access_mode="ReadOnlyMany"} == 1
+        kube_persistentvolumeclaim_access_mode{ access_mode="ReadOnlyMany"} == 1
         unless on(cluster, namespace, persistentvolumeclaim)
-        kube_persistentvolumeclaim_labels{namespace=~"(appuio.*|cilium|default|kube-.*|nunki-.*|openshift-.*|syn.*)",namespace!~"(openshift-marketplace)",label_alerts_k8s_io_kube_persistent_volume_filling_up="disabled"} == 1
+        kube_persistentvolumeclaim_labels{label_alerts_k8s_io_kube_persistent_volume_filling_up="disabled"} == 1
       |||,
       'for': '1m',
       labels: {
@@ -427,18 +427,18 @@ local persistentVolumeRules = {
       },
       expr: |||
         (
-          kubelet_volume_stats_available_bytes{namespace=~"(appuio.*|cilium|default|kube-.*|nunki-.*|openshift-.*|syn.*)",namespace!~"(openshift-marketplace)",job="kubelet", metrics_path="/metrics"}
+          kubelet_volume_stats_available_bytes{job="kubelet", metrics_path="/metrics"}
             /
-          kubelet_volume_stats_capacity_bytes{namespace=~"(appuio.*|cilium|default|kube-.*|nunki-.*|openshift-.*|syn.*)",namespace!~"(openshift-marketplace)",job="kubelet", metrics_path="/metrics"}
+          kubelet_volume_stats_capacity_bytes{job="kubelet", metrics_path="/metrics"}
         ) < 0.15
         and
-        kubelet_volume_stats_used_bytes{namespace=~"(appuio.*|cilium|default|kube-.*|nunki-.*|openshift-.*|syn.*)",namespace!~"(openshift-marketplace)",job="kubelet", metrics_path="/metrics"} > 0
+        kubelet_volume_stats_used_bytes{job="kubelet", metrics_path="/metrics"} > 0
         and
-        predict_linear(kubelet_volume_stats_available_bytes{namespace=~"(appuio.*|cilium|default|kube-.*|nunki-.*|openshift-.*|syn.*)",namespace!~"(openshift-marketplace)",job="kubelet", metrics_path="/metrics"}[6h], 4 * 24 * 3600) < 0
+        predict_linear(kubelet_volume_stats_available_bytes{job="kubelet", metrics_path="/metrics"}[6h], 4 * 24 * 3600) < 0
         unless on(cluster, namespace, persistentvolumeclaim)
-        kube_persistentvolumeclaim_access_mode{namespace=~"(appuio.*|cilium|default|kube-.*|nunki-.*|openshift-.*|syn.*)",namespace!~"(openshift-marketplace)", access_mode="ReadOnlyMany"} == 1
+        kube_persistentvolumeclaim_access_mode{ access_mode="ReadOnlyMany"} == 1
         unless on(cluster, namespace, persistentvolumeclaim)
-        kube_persistentvolumeclaim_labels{namespace=~"(appuio.*|cilium|default|kube-.*|nunki-.*|openshift-.*|syn.*)",namespace!~"(openshift-marketplace)",label_alerts_k8s_io_kube_persistent_volume_filling_up="disabled"} == 1
+        kube_persistentvolumeclaim_labels{label_alerts_k8s_io_kube_persistent_volume_filling_up="disabled"} == 1
       |||,
       'for': '1h',
       labels: {
@@ -456,16 +456,16 @@ local persistentVolumeRules = {
       },
       expr: |||
         (
-          kubelet_volume_stats_inodes_free{namespace=~"(appuio.*|cilium|default|kube-.*|nunki-.*|openshift-.*|syn.*)",namespace!~"(openshift-marketplace)",job="kubelet", metrics_path="/metrics"}
+          kubelet_volume_stats_inodes_free{job="kubelet", metrics_path="/metrics"}
             /
-          kubelet_volume_stats_inodes{namespace=~"(appuio.*|cilium|default|kube-.*|nunki-.*|openshift-.*|syn.*)",namespace!~"(openshift-marketplace)",job="kubelet", metrics_path="/metrics"}
+          kubelet_volume_stats_inodes{job="kubelet", metrics_path="/metrics"}
         ) < 0.03
         and
-        kubelet_volume_stats_inodes_used{namespace=~"(appuio.*|cilium|default|kube-.*|nunki-.*|openshift-.*|syn.*)",namespace!~"(openshift-marketplace)",job="kubelet", metrics_path="/metrics"} > 0
+        kubelet_volume_stats_inodes_used{job="kubelet", metrics_path="/metrics"} > 0
         unless on(cluster, namespace, persistentvolumeclaim)
-        kube_persistentvolumeclaim_access_mode{namespace=~"(appuio.*|cilium|default|kube-.*|nunki-.*|openshift-.*|syn.*)",namespace!~"(openshift-marketplace)", access_mode="ReadOnlyMany"} == 1
+        kube_persistentvolumeclaim_access_mode{ access_mode="ReadOnlyMany"} == 1
         unless on(cluster, namespace, persistentvolumeclaim)
-        kube_persistentvolumeclaim_labels{namespace=~"(appuio.*|cilium|default|kube-.*|nunki-.*|openshift-.*|syn.*)",namespace!~"(openshift-marketplace)",label_alerts_k8s_io_kube_persistent_volume_filling_up="disabled"} == 1
+        kube_persistentvolumeclaim_labels{label_alerts_k8s_io_kube_persistent_volume_filling_up="disabled"} == 1
       |||,
       'for': '1m',
       labels: {
@@ -483,18 +483,18 @@ local persistentVolumeRules = {
       },
       expr: |||
         (
-          kubelet_volume_stats_inodes_free{namespace=~"(appuio.*|cilium|default|kube-.*|nunki-.*|openshift-.*|syn.*)",namespace!~"(openshift-marketplace)",job="kubelet", metrics_path="/metrics"}
+          kubelet_volume_stats_inodes_free{job="kubelet", metrics_path="/metrics"}
             /
-          kubelet_volume_stats_inodes{namespace=~"(appuio.*|cilium|default|kube-.*|nunki-.*|openshift-.*|syn.*)",namespace!~"(openshift-marketplace)",job="kubelet", metrics_path="/metrics"}
+          kubelet_volume_stats_inodes{job="kubelet", metrics_path="/metrics"}
         ) < 0.15
         and
-        kubelet_volume_stats_inodes_used{namespace=~"(appuio.*|cilium|default|kube-.*|nunki-.*|openshift-.*|syn.*)",namespace!~"(openshift-marketplace)",job="kubelet", metrics_path="/metrics"} > 0
+        kubelet_volume_stats_inodes_used{job="kubelet", metrics_path="/metrics"} > 0
         and
-        predict_linear(kubelet_volume_stats_inodes_free{namespace=~"(appuio.*|cilium|default|kube-.*|nunki-.*|openshift-.*|syn.*)",namespace!~"(openshift-marketplace)",job="kubelet", metrics_path="/metrics"}[6h], 4 * 24 * 3600) < 0
+        predict_linear(kubelet_volume_stats_inodes_free{job="kubelet", metrics_path="/metrics"}[6h], 4 * 24 * 3600) < 0
         unless on(cluster, namespace, persistentvolumeclaim)
-        kube_persistentvolumeclaim_access_mode{namespace=~"(appuio.*|cilium|default|kube-.*|nunki-.*|openshift-.*|syn.*)",namespace!~"(openshift-marketplace)", access_mode="ReadOnlyMany"} == 1
+        kube_persistentvolumeclaim_access_mode{ access_mode="ReadOnlyMany"} == 1
         unless on(cluster, namespace, persistentvolumeclaim)
-        kube_persistentvolumeclaim_labels{namespace=~"(appuio.*|cilium|default|kube-.*|nunki-.*|openshift-.*|syn.*)",namespace!~"(openshift-marketplace)",label_alerts_k8s_io_kube_persistent_volume_filling_up="disabled"} == 1
+        kube_persistentvolumeclaim_labels{label_alerts_k8s_io_kube_persistent_volume_filling_up="disabled"} == 1
       |||,
       'for': '1h',
       labels: {
@@ -510,7 +510,7 @@ local persistentVolumeRules = {
         summary: 'PersistentVolume is having issues with provisioning.',
       },
       expr: |||
-        kube_persistentvolume_status_phase{phase=~"Failed|Pending",namespace=~"(appuio.*|cilium|default|kube-.*|nunki-.*|openshift-.*|syn.*)",namespace!~"(openshift-marketplace)",job="kube-state-metrics"} > 0
+        kube_persistentvolume_status_phase{phase=~"Failed|Pending",job="kube-state-metrics"} > 0
       |||,
       'for': '5m',
       labels: {
