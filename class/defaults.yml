@@ -5,3 +5,7 @@ parameters:
       multi_instance: true
       multi_version: true
     namespace: ${_instance}
+
+    createNamespace: true
+    namespaceAnnotations: {}
+    namespaceLabels: {}
