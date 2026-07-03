@@ -11,6 +11,7 @@ spec:
       summary: Pod container waiting longer than 1 hour
     expr: |
       kube_pod_container_status_waiting_reason{reason!="CrashLoopBackOff", job="kube-state-metrics"}
+       and on(namespace) kube_namespace_labels{label_vshn_net_solution_monitoring="defaults"}
        * on(namespace) group_left(label_syn_team) kube_namespace_labels
        > 0
     for: 1h
@@ -26,6 +27,7 @@ spec:
       summary: DaemonSet pods are misscheduled.
     expr: |
       kube_daemonset_status_number_misscheduled{job="kube-state-metrics"}
+      and on(namespace) kube_namespace_labels{label_vshn_net_solution_monitoring="defaults"}
       * on(namespace) group_left(label_syn_team) kube_namespace_labels
       > 0
     for: 15m
@@ -41,6 +43,7 @@ spec:
       summary: DaemonSet pods are not scheduled.
     expr: |
       kube_daemonset_status_desired_number_scheduled{job="kube-state-metrics"}
+      and on(namespace) kube_namespace_labels{label_vshn_net_solution_monitoring="defaults"}
         -
       kube_daemonset_status_current_number_scheduled{job="kube-state-metrics"}
       * on(namespace) group_left(label_syn_team) kube_namespace_labels
@@ -60,6 +63,7 @@ spec:
       (
         (
           kube_daemonset_status_current_number_scheduled{job="kube-state-metrics"}
+          and on(namespace) kube_namespace_labels{label_vshn_net_solution_monitoring="defaults"}
           * on(namespace) group_left(label_syn_team) kube_namespace_labels
             !=
           kube_daemonset_status_desired_number_scheduled{job="kube-state-metrics"}
@@ -94,6 +98,7 @@ spec:
       summary: Deployment generation mismatch due to possible roll-back
     expr: |
       kube_deployment_status_observed_generation{job="kube-state-metrics"}
+      and on(namespace) kube_namespace_labels{label_vshn_net_solution_monitoring="defaults"}
       * on(namespace) group_left(label_syn_team) kube_namespace_labels
         !=
       kube_deployment_metadata_generation{job="kube-state-metrics"}
@@ -110,6 +115,7 @@ spec:
       summary: Deployment rollout is not progressing.
     expr: |
       kube_deployment_status_condition{condition="Progressing", status="false",job="kube-state-metrics"}
+      and on(namespace) kube_namespace_labels{label_vshn_net_solution_monitoring="defaults"}
       * on(namespace) group_left(label_syn_team) kube_namespace_labels
       != 0
     for: 15m
@@ -126,7 +132,9 @@ spec:
     expr: |
       time() - max by(namespace, job_name, cluster) (kube_job_status_start_time{job="kube-state-metrics"}
         and
-      kube_job_status_active{job="kube-state-metrics"} > 0)
+      kube_job_status_active{job="kube-state-metrics"}
+      and on(namespace) kube_namespace_labels{label_vshn_net_solution_monitoring="defaults"}
+       > 0)
       * on(namespace) group_left(label_syn_team) kube_namespace_labels
       > 43200
     labels:
@@ -142,6 +150,7 @@ spec:
     expr: |
       (
         kube_poddisruptionbudget_status_desired_healthy{job="kube-state-metrics"}
+        and on(namespace) kube_namespace_labels{label_vshn_net_solution_monitoring="defaults"}
         -
         kube_poddisruptionbudget_status_current_healthy{job="kube-state-metrics"}
       )
@@ -160,6 +169,7 @@ spec:
       summary: Pod is crash looping.
     expr: |
       max_over_time(kube_pod_container_status_waiting_reason{reason="CrashLoopBackOff", job="kube-state-metrics"}[5m])
+       and on(namespace) kube_namespace_labels{label_vshn_net_solution_monitoring="defaults"}
        * on(namespace) group_left(label_syn_team) kube_namespace_labels
        >= 1
     for: 15m
@@ -178,6 +188,7 @@ spec:
       sum by (namespace, pod, cluster) (
         max by(namespace, pod, cluster) (
           kube_pod_status_phase{ job="kube-state-metrics", phase=~"Pending|Unknown"}
+          and on(namespace) kube_namespace_labels{label_vshn_net_solution_monitoring="defaults"}
           unless ignoring(phase) (kube_pod_status_unschedulable{job="kube-state-metrics"} == 1)
         ) * on(namespace, pod, cluster) group_left(owner_kind) topk by(namespace, pod, cluster) (
           1, max by(namespace, pod, owner_kind, cluster) (kube_pod_owner{owner_kind!="Job"})
@@ -198,6 +209,7 @@ spec:
       summary: StatefulSet generation mismatch due to possible roll-back
     expr: |
       kube_statefulset_status_observed_generation{job="kube-state-metrics"}
+      and on(namespace) kube_namespace_labels{label_vshn_net_solution_monitoring="defaults"}
       * on(namespace) group_left(label_syn_team) kube_namespace_labels
         !=
       kube_statefulset_metadata_generation{job="kube-state-metrics"}
@@ -215,6 +227,7 @@ spec:
     expr: |
       (
         kube_statefulset_status_replicas_ready{job="kube-state-metrics"}
+        and on(namespace) kube_namespace_labels{label_vshn_net_solution_monitoring="defaults"}
         * on(namespace) group_left(label_syn_team) kube_namespace_labels
           !=
         kube_statefulset_replicas{job="kube-state-metrics"}
@@ -238,6 +251,7 @@ spec:
       (
         max by(namespace, statefulset, job, cluster) (
           kube_statefulset_status_current_revision{job="kube-state-metrics"}
+          and on(namespace) kube_namespace_labels{label_vshn_net_solution_monitoring="defaults"}
             unless
           kube_statefulset_status_update_revision{job="kube-state-metrics"}
         )

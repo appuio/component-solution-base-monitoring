@@ -33,7 +33,9 @@ local defaultRuleLabels = {
 };
 
 local rule(name, base) =
+  local monitor_namespaces = params.monitor_namespaces;
   local expr = base.expr % {
+    namespaceLabelFilter: 'and on(namespace) kube_namespace_labels{label_%s="%s"}' % [ monitor_namespaces.label, monitor_namespaces.label_value ],
     teamJoin: '* on(namespace) group_left(label_syn_team) kube_namespace_labels',
   };
   local rule = std.mergePatch(base, { expr: expr });
@@ -69,6 +71,7 @@ local monitoringOperatorRules = {
       expr: |||
         (((
           kube_deployment_spec_replicas{job="kube-state-metrics"}
+          %(namespaceLabelFilter)s
             >
           kube_deployment_status_replicas_available{job="kube-state-metrics"}
         ) and (
@@ -96,6 +99,7 @@ local monitoringOperatorRules = {
       },
       expr: |||
         last_over_time(kube_pod_status_unschedulable[5m])
+        %(namespaceLabelFilter)s
         %(teamJoin)s
           == 1
       |||,
@@ -123,6 +127,7 @@ local synKubernetesMonitoringRules = {
       },
       expr: |||
         max_over_time(kube_pod_container_status_waiting_reason{reason="CrashLoopBackOff", job="kube-state-metrics"}[5m])
+         %(namespaceLabelFilter)s
          %(teamJoin)s
          >= 1
       |||,
@@ -144,6 +149,7 @@ local synKubernetesMonitoringRules = {
         sum by (namespace, pod, cluster) (
           max by(namespace, pod, cluster) (
             kube_pod_status_phase{ job="kube-state-metrics", phase=~"Pending|Unknown"}
+            %(namespaceLabelFilter)s
             unless ignoring(phase) (kube_pod_status_unschedulable{job="kube-state-metrics"} == 1)
           ) * on(namespace, pod, cluster) group_left(owner_kind) topk by(namespace, pod, cluster) (
             1, max by(namespace, pod, owner_kind, cluster) (kube_pod_owner{owner_kind!="Job"})
@@ -167,6 +173,7 @@ local synKubernetesMonitoringRules = {
       },
       expr: |||
         kube_deployment_status_observed_generation{job="kube-state-metrics"}
+        %(namespaceLabelFilter)s
         %(teamJoin)s
           !=
         kube_deployment_metadata_generation{job="kube-state-metrics"}
@@ -186,6 +193,7 @@ local synKubernetesMonitoringRules = {
       },
       expr: |||
         kube_deployment_status_condition{condition="Progressing", status="false",job="kube-state-metrics"}
+        %(namespaceLabelFilter)s
         %(teamJoin)s
         != 0
       |||,
@@ -205,6 +213,7 @@ local synKubernetesMonitoringRules = {
       expr: |||
         (
           kube_statefulset_status_replicas_ready{job="kube-state-metrics"}
+          %(namespaceLabelFilter)s
           %(teamJoin)s
             !=
           kube_statefulset_replicas{job="kube-state-metrics"}
@@ -229,6 +238,7 @@ local synKubernetesMonitoringRules = {
       },
       expr: |||
         kube_statefulset_status_observed_generation{job="kube-state-metrics"}
+        %(namespaceLabelFilter)s
         %(teamJoin)s
           !=
         kube_statefulset_metadata_generation{job="kube-state-metrics"}
@@ -250,6 +260,7 @@ local synKubernetesMonitoringRules = {
         (
           max by(namespace, statefulset, job, cluster) (
             kube_statefulset_status_current_revision{job="kube-state-metrics"}
+            %(namespaceLabelFilter)s
               unless
             kube_statefulset_status_update_revision{job="kube-state-metrics"}
           )
@@ -283,6 +294,7 @@ local synKubernetesMonitoringRules = {
         (
           (
             kube_daemonset_status_current_number_scheduled{job="kube-state-metrics"}
+            %(namespaceLabelFilter)s
             %(teamJoin)s
               !=
             kube_daemonset_status_desired_number_scheduled{job="kube-state-metrics"}
@@ -320,6 +332,7 @@ local synKubernetesMonitoringRules = {
       },
       expr: |||
         kube_pod_container_status_waiting_reason{reason!="CrashLoopBackOff", job="kube-state-metrics"}
+         %(namespaceLabelFilter)s
          %(teamJoin)s
          > 0
       |||,
@@ -338,6 +351,7 @@ local synKubernetesMonitoringRules = {
       },
       expr: |||
         kube_daemonset_status_desired_number_scheduled{job="kube-state-metrics"}
+        %(namespaceLabelFilter)s
           -
         kube_daemonset_status_current_number_scheduled{job="kube-state-metrics"}
         %(teamJoin)s
@@ -358,6 +372,7 @@ local synKubernetesMonitoringRules = {
       },
       expr: |||
         kube_daemonset_status_number_misscheduled{job="kube-state-metrics"}
+        %(namespaceLabelFilter)s
         %(teamJoin)s
         > 0
       |||,
@@ -377,7 +392,9 @@ local synKubernetesMonitoringRules = {
       expr: |||
         time() - max by(namespace, job_name, cluster) (kube_job_status_start_time{job="kube-state-metrics"}
           and
-        kube_job_status_active{job="kube-state-metrics"} > 0)
+        kube_job_status_active{job="kube-state-metrics"}
+        %(namespaceLabelFilter)s
+         > 0)
         %(teamJoin)s
         > 43200
       |||,
@@ -396,6 +413,7 @@ local synKubernetesMonitoringRules = {
       expr: |||
         (
           kube_poddisruptionbudget_status_desired_healthy{job="kube-state-metrics"}
+          %(namespaceLabelFilter)s
           -
           kube_poddisruptionbudget_status_current_healthy{job="kube-state-metrics"}
         )
@@ -428,6 +446,7 @@ local persistentVolumeRules = {
       expr: |||
         (
           kubelet_volume_stats_available_bytes{job="kubelet", metrics_path="/metrics"}
+          %(namespaceLabelFilter)s
             /
           kubelet_volume_stats_capacity_bytes{job="kubelet", metrics_path="/metrics"}
         ) < 0.03
@@ -457,6 +476,7 @@ local persistentVolumeRules = {
       expr: |||
         (
           kubelet_volume_stats_available_bytes{job="kubelet", metrics_path="/metrics"}
+          %(namespaceLabelFilter)s
             /
           kubelet_volume_stats_capacity_bytes{job="kubelet", metrics_path="/metrics"}
         )
@@ -488,6 +508,7 @@ local persistentVolumeRules = {
       expr: |||
         (
           kubelet_volume_stats_inodes_free{job="kubelet", metrics_path="/metrics"}
+          %(namespaceLabelFilter)s
             /
           kubelet_volume_stats_inodes{job="kubelet", metrics_path="/metrics"}
         )
@@ -517,6 +538,7 @@ local persistentVolumeRules = {
       expr: |||
         (
           kubelet_volume_stats_inodes_free{job="kubelet", metrics_path="/metrics"}
+          %(namespaceLabelFilter)s
             /
           kubelet_volume_stats_inodes{job="kubelet", metrics_path="/metrics"}
         )
@@ -546,6 +568,7 @@ local persistentVolumeRules = {
       },
       expr: |||
         kube_persistentvolume_status_phase{phase=~"Failed|Pending",job="kube-state-metrics"}
+        %(namespaceLabelFilter)s
         %(teamJoin)s
         > 0
       |||,

@@ -9,3 +9,7 @@ parameters:
     createNamespace: true
     namespaceAnnotations: {}
     namespaceLabels: {}
+
+    monitor_namespaces:
+      label: vshn_net_solution_monitoring
+      label_value: ${_instance}
