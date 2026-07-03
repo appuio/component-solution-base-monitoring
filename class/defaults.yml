@@ -2,4 +2,6 @@ parameters:
   solution_base_monitoring:
     =_metadata:
       multi_tenant: true
-    namespace: syn-solution-base-monitoring
+      multi_instance: true
+      multi_version: true
+    namespace: ${_instance}
