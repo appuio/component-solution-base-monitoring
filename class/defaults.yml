@@ -1,0 +1,5 @@
+parameters:
+  solution_base_monitoring:
+    =_metadata:
+      multi_tenant: true
+    namespace: syn-solution-base-monitoring

@@ -1,0 +1,5 @@
+= solution-base-monitoring
+
+solution-base-monitoring is a Commodore component to manage solution-base-monitoring.
+
+See the xref:references/parameters.adoc[parameters] reference for further details.

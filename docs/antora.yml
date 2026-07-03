@@ -1,0 +1,6 @@
+name: solution-base-monitoring
+title: solution-base-monitoring
+version: master
+start_page: ROOT:index.adoc
+nav:
+  - modules/ROOT/partials/nav.adoc
