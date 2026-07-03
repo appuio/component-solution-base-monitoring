@@ -24,6 +24,23 @@ local namespace = (
   },
 };
 
+local params = inv.parameters.solution_base_monitoring;
+
+local defaultRuleLabels = {
+  syn: 'true',
+  syn_component: 'openshift4-monitoring',
+  syn_team: 'aldebaran',
+};
+
+local rule(name, base) = {
+  ['alert:%s' % name]: std.mergePatch(
+    {
+      labels: defaultRuleLabels,
+    },
+    base,
+  ),
+};
+
 local monitoringOperatorRules = {
   apiVersion: 'monitoring.coreos.com/v1',
   kind: 'PrometheusRule',
@@ -31,8 +48,8 @@ local monitoringOperatorRules = {
     name: 'solution-monitoring-operator-prometheus-rules',
     namespace: params.namespace,
   },
-  spec: {
-    'alert:SYN_KubeDeploymentReplicasMismatch': {
+  spec:
+    rule('SYN_KubeDeploymentReplicasMismatch', {
       annotations: {
         description: |||
           Deployment {{ $labels.namespace }}/{{ $labels.deployment }} has not matched the expected number of replicas for longer than 15 minutes.
@@ -58,12 +75,10 @@ local monitoringOperatorRules = {
       'for': '15m',
       labels: {
         severity: 'warning',
-        syn: 'true',
-        syn_component: 'openshift4-monitoring',
-        syn_team: 'aldebaran',
       },
-    },
-    'alert:SYN_KubePodNotScheduled': {
+    })
+    +
+    rule('SYN_KubePodNotScheduled', {
       annotations: {
         description: |||
           Pod {{ $labels.namespace }}/{{ $labels.pod }} cannot be scheduled for more than 30 minutes.
@@ -79,12 +94,8 @@ local monitoringOperatorRules = {
       'for': '30m',
       labels: {
         severity: 'warning',
-        syn: 'true',
-        syn_component: 'openshift4-monitoring',
-        syn_team: 'aldebaran',
       },
-    },
-  },
+    }),
 };
 
 local synKubernetesMonitoringRules = {
@@ -94,8 +105,8 @@ local synKubernetesMonitoringRules = {
     name: 'syn-kubernetes-monitoring-rules',
     namespace: params.namespace,
   },
-  spec: {
-    'alert:SYN_KubePodCrashLooping': {
+  spec:
+    rule('SYN_KubePodCrashLooping', {
       annotations: {
         description: |||
           Pod {{ $labels.namespace }}/{{ $labels.pod }} ({{ $labels.container }}) is in waiting state (reason: "CrashLoopBackOff").
@@ -108,12 +119,10 @@ local synKubernetesMonitoringRules = {
       'for': '15m',
       labels: {
         severity: 'warning',
-        syn: 'true',
-        syn_component: 'openshift4-monitoring',
-        syn_team: 'aldebaran',
       },
-    },
-    'alert:SYN_KubePodNotReady': {
+    })
+    +
+    rule('SYN_KubePodNotReady', {
       annotations: {
         description: |||
           Pod {{ $labels.namespace }}/{{ $labels.pod }} has been in a non-ready state for longer than 15 minutes.
@@ -134,12 +143,10 @@ local synKubernetesMonitoringRules = {
       'for': '15m',
       labels: {
         severity: 'warning',
-        syn: 'true',
-        syn_component: 'openshift4-monitoring',
-        syn_team: 'aldebaran',
       },
-    },
-    'alert:SYN_KubeDeploymentGenerationMismatch': {
+    })
+    +
+    rule('SYN_KubeDeploymentGenerationMismatch', {
       annotations: {
         description: |||
           Deployment generation for {{ $labels.namespace }}/{{ $labels.deployment }} does not match, this indicates that the Deployment has failed but has not been rolled back.
@@ -154,12 +161,10 @@ local synKubernetesMonitoringRules = {
       'for': '15m',
       labels: {
         severity: 'warning',
-        syn: 'true',
-        syn_component: 'openshift4-monitoring',
-        syn_team: 'aldebaran',
       },
-    },
-    'alert:SYN_KubeDeploymentRolloutStuck': {
+    })
+    +
+    rule('SYN_KubeDeploymentRolloutStuck', {
       annotations: {
         description: |||
           Rollout of deployment {{ $labels.namespace }}/{{ $labels.deployment }} is not progressing for longer than 15 minutes.
@@ -173,12 +178,10 @@ local synKubernetesMonitoringRules = {
       'for': '15m',
       labels: {
         severity: 'warning',
-        syn: 'true',
-        syn_component: 'openshift4-monitoring',
-        syn_team: 'aldebaran',
       },
-    },
-    'alert:SYN_KubeStatefulSetReplicasMismatch': {
+    })
+    +
+    rule('SYN_KubeStatefulSetReplicasMismatch', {
       annotations: {
         description: |||
           StatefulSet {{ $labels.namespace }}/{{ $labels.statefulset }} has not matched the expected number of replicas for longer than 15 minutes.
@@ -199,12 +202,10 @@ local synKubernetesMonitoringRules = {
       'for': '15m',
       labels: {
         severity: 'warning',
-        syn: 'true',
-        syn_component: 'openshift4-monitoring',
-        syn_team: 'aldebaran',
       },
-    },
-    'alert:SYN_KubeStatefulSetGenerationMismatch': {
+    })
+    +
+    rule('SYN_KubeStatefulSetGenerationMismatch', {
       annotations: {
         description: |||
           StatefulSet generation for {{ $labels.namespace }}/{{ $labels.statefulset }} does not match, this indicates that the StatefulSet has failed but has not been rolled back.
@@ -219,12 +220,10 @@ local synKubernetesMonitoringRules = {
       'for': '15m',
       labels: {
         severity: 'warning',
-        syn: 'true',
-        syn_component: 'openshift4-monitoring',
-        syn_team: 'aldebaran',
       },
-    },
-    'alert:SYN_KubeStatefulSetUpdateNotRolledOut': {
+    })
+    +
+    rule('SYN_KubeStatefulSetUpdateNotRolledOut', {
       annotations: {
         description: |||
           StatefulSet {{ $labels.namespace }}/{{ $labels.statefulset }} update has not been rolled out.
@@ -253,12 +252,10 @@ local synKubernetesMonitoringRules = {
       'for': '15m',
       labels: {
         severity: 'warning',
-        syn: 'true',
-        syn_component: 'openshift4-monitoring',
-        syn_team: 'aldebaran',
       },
-    },
-    'alert:SYN_KubeDaemonSetRolloutStuck': {
+    })
+    +
+    rule('SYN_KubeDaemonSetRolloutStuck', {
       annotations: {
         description: |||
           DaemonSet {{ $labels.namespace }}/{{ $labels.daemonset }} has not finished or progressed for at least 30 minutes.
@@ -293,12 +290,10 @@ local synKubernetesMonitoringRules = {
       'for': '30m',
       labels: {
         severity: 'warning',
-        syn: 'true',
-        syn_component: 'openshift4-monitoring',
-        syn_team: 'aldebaran',
       },
-    },
-    'alert:SYN_KubeContainerWaiting': {
+    })
+    +
+    rule('SYN_KubeContainerWaiting', {
       annotations: {
         description: |||
           pod/{{ $labels.pod }} in namespace {{ $labels.namespace }} on container {{ $labels.container}} has been in waiting state for longer than 1 hour. (reason: "{{ $labels.reason }}").
@@ -311,12 +306,10 @@ local synKubernetesMonitoringRules = {
       'for': '1h',
       labels: {
         severity: 'warning',
-        syn: 'true',
-        syn_component: 'openshift4-monitoring',
-        syn_team: 'aldebaran',
       },
-    },
-    'alert:SYN_KubeDaemonSetNotScheduled': {
+    })
+    +
+    rule('SYN_KubeDaemonSetNotScheduled', {
       annotations: {
         description: |||
           {{ $value }} Pods of DaemonSet {{ $labels.namespace }}/{{ $labels.daemonset }} are not scheduled.
@@ -331,12 +324,10 @@ local synKubernetesMonitoringRules = {
       'for': '10m',
       labels: {
         severity: 'warning',
-        syn: 'true',
-        syn_component: 'openshift4-monitoring',
-        syn_team: 'aldebaran',
       },
-    },
-    'alert:SYN_KubeDaemonSetMisScheduled': {
+    })
+    +
+    rule('SYN_KubeDaemonSetMisScheduled', {
       annotations: {
         description: |||
           {{ $value }} Pods of DaemonSet {{ $labels.namespace }}/{{ $labels.daemonset }} are running where they are not supposed to run.
@@ -349,12 +340,10 @@ local synKubernetesMonitoringRules = {
       'for': '15m',
       labels: {
         severity: 'warning',
-        syn: 'true',
-        syn_component: 'openshift4-monitoring',
-        syn_team: 'aldebaran',
       },
-    },
-    'alert:SYN_KubeJobNotCompleted': {
+    })
+    +
+    rule('SYN_KubeJobNotCompleted', {
       annotations: {
         description: |||
           Job {{ $labels.namespace }}/{{ $labels.job_name }} is taking more than {{ "43200" | humanizeDuration }} to complete.
@@ -368,12 +357,10 @@ local synKubernetesMonitoringRules = {
       |||,
       labels: {
         severity: 'warning',
-        syn: 'true',
-        syn_component: 'openshift4-monitoring',
-        syn_team: 'aldebaran',
       },
-    },
-    'alert:SYN_KubePdbNotEnoughHealthyPods': {
+    })
+    +
+    rule('SYN_KubePdbNotEnoughHealthyPods', {
       annotations: {
         description: |||
           PDB {{ $labels.namespace }}/{{ $labels.poddisruptionbudget }} expects {{ $value }} more healthy pods. The desired number of healthy pods has not been met for at least 15m.
@@ -391,12 +378,8 @@ local synKubernetesMonitoringRules = {
       'for': '15m',
       labels: {
         severity: 'warning',
-        syn: 'true',
-        syn_component: 'openshift4-monitoring',
-        syn_team: 'aldebaran',
       },
-    },
-  },
+    }),
 };
 
 local persistentVolumeRules = {
@@ -406,8 +389,8 @@ local persistentVolumeRules = {
     name: 'syn-prometheus',
     namespace: params.namespace,
   },
-  spec: {
-    'alert:SYN_KubePersistentVolumeFillingUp': {
+  spec:
+    rule('SYN_KubePersistentVolumeFillingUp', {
       annotations: {
         description: |||
           The PersistentVolume claimed by {{ $labels.persistentvolumeclaim }} in Namespace {{ $labels.namespace }} {{ with $labels.cluster -}} on Cluster {{ . }} {{- end }} is only {{ $value | humanizePercentage }} free.
@@ -431,12 +414,10 @@ local persistentVolumeRules = {
       'for': '1m',
       labels: {
         severity: 'critical',
-        syn: 'true',
-        syn_component: 'openshift4-monitoring',
-        syn_team: 'aldebaran',
       },
-    },
-    'alert:SYN_KubePersistentVolumeFillingUpWarning': {
+    })
+    +
+    rule('SYN_KubePersistentVolumeFillingUpWarning', {
       annotations: {
         description: |||
           Based on recent sampling, the PersistentVolume claimed by {{ $labels.persistentvolumeclaim }} in Namespace {{ $labels.namespace }} {{ with $labels.cluster -}} on Cluster {{ . }} {{- end }} is expected to fill up within four days. Currently {{ $value | humanizePercentage }} is available.
@@ -462,12 +443,10 @@ local persistentVolumeRules = {
       'for': '1h',
       labels: {
         severity: 'warning',
-        syn: 'true',
-        syn_component: 'openshift4-monitoring',
-        syn_team: 'aldebaran',
       },
-    },
-    'alert:SYN_KubePersistentVolumeInodesFillingUp': {
+    })
+    +
+    rule('SYN_KubePersistentVolumeInodesFillingUp', {
       annotations: {
         description: |||
           The PersistentVolume claimed by {{ $labels.persistentvolumeclaim }} in Namespace {{ $labels.namespace }} {{ with $labels.cluster -}} on Cluster {{ . }} {{- end }} only has {{ $value | humanizePercentage }} free inodes.
@@ -491,12 +470,10 @@ local persistentVolumeRules = {
       'for': '1m',
       labels: {
         severity: 'critical',
-        syn: 'true',
-        syn_component: 'openshift4-monitoring',
-        syn_team: 'aldebaran',
       },
-    },
-    'alert:SYN_KubePersistentVolumeInodesFillingUpWarning': {
+    })
+    +
+    rule('SYN_KubePersistentVolumeInodesFillingUpWarning', {
       annotations: {
         description: |||
           Based on recent sampling, the PersistentVolume claimed by {{ $labels.persistentvolumeclaim }} in Namespace {{ $labels.namespace }} {{ with $labels.cluster -}} on Cluster {{ . }} {{- end }} is expected to run out of inodes within four days. Currently {{ $value | humanizePercentage }} of its inodes are free.
@@ -522,12 +499,10 @@ local persistentVolumeRules = {
       'for': '1h',
       labels: {
         severity: 'warning',
-        syn: 'true',
-        syn_component: 'openshift4-monitoring',
-        syn_team: 'aldebaran',
       },
-    },
-    'alert:SYN_KubepersistentVolumeRules': {
+    })
+    +
+    rule('SYN_KubePersistentVolumeErrors', {
       annotations: {
         description: |||
           The persistent volume {{ $labels.persistentvolume }} {{ with $labels.cluster -}} on Cluster {{ . }} {{- end }} has status {{ $labels.phase }}.
@@ -540,12 +515,8 @@ local persistentVolumeRules = {
       'for': '5m',
       labels: {
         severity: 'warning',
-        syn: 'true',
-        syn_component: 'openshift4-monitoring',
-        syn_team: 'aldebaran',
       },
-    },
-  },
+    }),
 };
 
 {
