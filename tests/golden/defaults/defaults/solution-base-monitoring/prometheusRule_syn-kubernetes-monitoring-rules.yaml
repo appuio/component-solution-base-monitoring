@@ -19,7 +19,7 @@ spec:
       severity: warning
       syn: 'true'
       syn_component: solution-base-monitoring
-      syn_team: aldebaran
+      syn_team: '{{ $labels.label_syn_team }}'
   alert:SYN_KubeDaemonSetMisScheduled:
     annotations:
       description: |
@@ -35,7 +35,7 @@ spec:
       severity: warning
       syn: 'true'
       syn_component: solution-base-monitoring
-      syn_team: aldebaran
+      syn_team: '{{ $labels.label_syn_team }}'
   alert:SYN_KubeDaemonSetNotScheduled:
     annotations:
       description: |
@@ -53,7 +53,7 @@ spec:
       severity: warning
       syn: 'true'
       syn_component: solution-base-monitoring
-      syn_team: aldebaran
+      syn_team: '{{ $labels.label_syn_team }}'
   alert:SYN_KubeDaemonSetRolloutStuck:
     annotations:
       description: |
@@ -90,7 +90,7 @@ spec:
       severity: warning
       syn: 'true'
       syn_component: solution-base-monitoring
-      syn_team: aldebaran
+      syn_team: '{{ $labels.label_syn_team }}'
   alert:SYN_KubeDeploymentGenerationMismatch:
     annotations:
       description: |
@@ -107,7 +107,7 @@ spec:
       severity: warning
       syn: 'true'
       syn_component: solution-base-monitoring
-      syn_team: aldebaran
+      syn_team: '{{ $labels.label_syn_team }}'
   alert:SYN_KubeDeploymentRolloutStuck:
     annotations:
       description: |
@@ -123,7 +123,7 @@ spec:
       severity: warning
       syn: 'true'
       syn_component: solution-base-monitoring
-      syn_team: aldebaran
+      syn_team: '{{ $labels.label_syn_team }}'
   alert:SYN_KubeJobNotCompleted:
     annotations:
       description: |
@@ -141,7 +141,7 @@ spec:
       severity: warning
       syn: 'true'
       syn_component: solution-base-monitoring
-      syn_team: aldebaran
+      syn_team: '{{ $labels.label_syn_team }}'
   alert:SYN_KubePdbNotEnoughHealthyPods:
     annotations:
       description: |
@@ -161,7 +161,7 @@ spec:
       severity: warning
       syn: 'true'
       syn_component: solution-base-monitoring
-      syn_team: aldebaran
+      syn_team: '{{ $labels.label_syn_team }}'
   alert:SYN_KubePodCrashLooping:
     annotations:
       description: |
@@ -177,7 +177,7 @@ spec:
       severity: warning
       syn: 'true'
       syn_component: solution-base-monitoring
-      syn_team: aldebaran
+      syn_team: '{{ $labels.label_syn_team }}'
   alert:SYN_KubePodNotReady:
     annotations:
       description: |
@@ -201,7 +201,7 @@ spec:
       severity: warning
       syn: 'true'
       syn_component: solution-base-monitoring
-      syn_team: aldebaran
+      syn_team: '{{ $labels.label_syn_team }}'
   alert:SYN_KubeStatefulSetGenerationMismatch:
     annotations:
       description: |
@@ -218,7 +218,7 @@ spec:
       severity: warning
       syn: 'true'
       syn_component: solution-base-monitoring
-      syn_team: aldebaran
+      syn_team: '{{ $labels.label_syn_team }}'
   alert:SYN_KubeStatefulSetReplicasMismatch:
     annotations:
       description: |
@@ -241,7 +241,7 @@ spec:
       severity: warning
       syn: 'true'
       syn_component: solution-base-monitoring
-      syn_team: aldebaran
+      syn_team: '{{ $labels.label_syn_team }}'
   alert:SYN_KubeStatefulSetUpdateNotRolledOut:
     annotations:
       description: |
@@ -272,4 +272,4 @@ spec:
       severity: warning
       syn: 'true'
       syn_component: solution-base-monitoring
-      syn_team: aldebaran
+      syn_team: '{{ $labels.label_syn_team }}'

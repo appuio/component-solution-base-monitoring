@@ -29,7 +29,7 @@ local params = inv.parameters.solution_base_monitoring;
 local defaultRuleLabels = {
   syn: 'true',
   syn_component: 'solution-base-monitoring',
-  syn_team: 'aldebaran',
+  syn_team: '{{ $labels.label_syn_team }}',
 };
 
 local rule(name, base) =
