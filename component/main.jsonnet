@@ -71,10 +71,11 @@ local monitoringOperatorRules = {
       expr: |||
         (((
           kube_deployment_spec_replicas{job="kube-state-metrics"}
-          %(namespaceLabelFilter)s
             >
           kube_deployment_status_replicas_available{job="kube-state-metrics"}
-        ) and (
+        ) 
+          %(namespaceLabelFilter)s
+          and (
           changes(kube_deployment_status_replicas_updated{job="kube-state-metrics"}[5m])
             ==
           0

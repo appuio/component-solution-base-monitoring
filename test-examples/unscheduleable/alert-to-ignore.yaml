@@ -1,0 +1,33 @@
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: solution-based-monitoring-ignore
+  labels:
+    syn_team: nunki
+    vshn_net_solution_monitoring: "other"
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: unschedulable
+  namespace: solution-based-monitoring-ignore
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: failing-app
+  template:
+    metadata:
+      labels:
+        app: failing-app
+    spec:
+      containers:
+        - name: failing-container
+          image: busybox
+          command: ["sh", "-c", "exit 1"]
+          readinessProbe:
+            exec:
+              command: ["false"]
+            initialDelaySeconds: 2
+            failureThreshold: 0
+            periodSeconds: 5
