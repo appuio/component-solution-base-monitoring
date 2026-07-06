@@ -63,8 +63,8 @@ prometheusrule:
                   Pod {{ $labels.namespace }}/{{ $labels.pod }} ({{ $labels.container }}) is in waiting state (reason: "CrashLoopBackOff").
                 summary: Pod is crash looping.
               expr: |
-                max_over_time(kube_pod_container_status_waiting_reason{reason="CrashLoopBackOff", job="kube-state-metrics"}[5m])
-                 %(namespaceLabelFilter)s
+                (max_over_time(kube_pod_container_status_waiting_reason{reason="CrashLoopBackOff", job="kube-state-metrics"}[5m])
+                 %(namespaceLabelFilter)s )
                  %(teamJoin)s
                  >= 1
               for: 15m
