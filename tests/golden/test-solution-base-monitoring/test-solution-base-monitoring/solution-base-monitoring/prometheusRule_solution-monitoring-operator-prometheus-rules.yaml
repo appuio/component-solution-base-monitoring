@@ -45,8 +45,8 @@ spec:
               oc describe -n {{ $labels.namespace }} pod {{ $labels.pod }}
             summary: Pod cannot be scheduled.
           expr: |
-            last_over_time(kube_pod_status_unschedulable[5m])
-            and on(namespace) kube_namespace_labels{label_vshn_net_solution_monitoring="test-solution-base-monitoring"}
+            (last_over_time(kube_pod_status_unschedulable[5m])
+            and on(namespace) kube_namespace_labels{label_vshn_net_solution_monitoring="test-solution-base-monitoring"} )
             * on(namespace) group_left(label_syn_team) kube_namespace_labels
               == 1
           for: 30m

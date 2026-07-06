@@ -45,8 +45,8 @@ prometheusrule:
                   oc describe -n {{ $labels.namespace }} pod {{ $labels.pod }}
                 summary: Pod cannot be scheduled.
               expr: |
-                last_over_time(kube_pod_status_unschedulable[5m])
-                %(namespaceLabelFilter)s
+                (last_over_time(kube_pod_status_unschedulable[5m])
+                %(namespaceLabelFilter)s )
                 %(teamJoin)s
                   == 1
               for: 30m
