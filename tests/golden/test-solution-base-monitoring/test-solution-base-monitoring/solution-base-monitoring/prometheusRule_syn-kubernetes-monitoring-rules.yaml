@@ -108,16 +108,19 @@ spec:
             summary: StatefulSet has not matched the expected number of replicas.
           expr: |
             (
-              kube_statefulset_status_replicas_ready{job="kube-state-metrics"}
-              and on(namespace) kube_namespace_labels{label_vshn_net_solution_monitoring="test-solution-base-monitoring"}
-              * on(namespace) group_left(label_syn_team) kube_namespace_labels
+              (
+                kube_statefulset_status_replicas_ready{job="kube-state-metrics"}
                 !=
-              kube_statefulset_replicas{job="kube-state-metrics"}
-            ) and (
-              changes(kube_statefulset_status_replicas_updated{job="kube-state-metrics"}[10m])
+                kube_statefulset_replicas{job="kube-state-metrics"}
+              )
+              and on(namespace) kube_namespace_labels{label_vshn_net_solution_monitoring="test-solution-base-monitoring"}
+              and (
+                changes(kube_statefulset_status_replicas_updated{job="kube-state-metrics"}[10m])
                 ==
-              0
+                0
+              )
             )
+            * on(namespace) group_left(label_syn_team) kube_namespace_labels
           for: 15m
           labels:
             severity: warning

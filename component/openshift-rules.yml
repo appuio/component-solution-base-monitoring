@@ -98,16 +98,19 @@ prometheusrule:
                 summary: StatefulSet has not matched the expected number of replicas.
               expr: |
                 (
-                  kube_statefulset_status_replicas_ready{job="kube-state-metrics"}
-                  %(namespaceLabelFilter)s
-                  %(teamJoin)s
+                  (
+                    kube_statefulset_status_replicas_ready{job="kube-state-metrics"}
                     !=
-                  kube_statefulset_replicas{job="kube-state-metrics"}
-                ) and (
-                  changes(kube_statefulset_status_replicas_updated{job="kube-state-metrics"}[10m])
+                    kube_statefulset_replicas{job="kube-state-metrics"}
+                  )
+                  %(namespaceLabelFilter)s
+                  and (
+                    changes(kube_statefulset_status_replicas_updated{job="kube-state-metrics"}[10m])
                     ==
-                  0
+                    0
+                  )
                 )
+                %(teamJoin)s
               for: 15m
               labels:
                 severity: warning
