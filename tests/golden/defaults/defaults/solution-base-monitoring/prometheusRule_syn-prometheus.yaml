@@ -7,6 +7,22 @@ spec:
   groups:
     - name: kubernetes-storage
       rules:
+        - alert: SYN_KubePersistentVolumeErrors
+          annotations:
+            description: |
+              The persistent volume {{ $labels.persistentvolume }} {{ with $labels.cluster -}} on Cluster {{ . }} {{- end }} has status {{ $labels.phase }}.
+            summary: PersistentVolume is having issues with provisioning.
+          expr: |
+            kube_persistentvolume_status_phase{phase=~"Failed|Pending",job="kube-state-metrics"}
+            and on(namespace) kube_namespace_labels{label_vshn_net_solution_monitoring="defaults"}
+            * on(namespace) group_left(label_syn_team) kube_namespace_labels
+            > 0
+          for: 5m
+          labels:
+            severity: warning
+            syn: 'true'
+            syn_component: solution-base-monitoring
+            syn_team: '{{ $labels.label_syn_team }}'
         - alert: SYN_KubePersistentVolumeFillingUp
           annotations:
             description: |
@@ -114,22 +130,6 @@ spec:
             unless on(cluster, namespace, persistentvolumeclaim)
             kube_persistentvolumeclaim_labels{label_alerts_k8s_io_kube_persistent_volume_filling_up="disabled"} == 1
           for: 1h
-          labels:
-            severity: warning
-            syn: 'true'
-            syn_component: solution-base-monitoring
-            syn_team: '{{ $labels.label_syn_team }}'
-        - alert: SYN_KubePersistentVolumeErrors
-          annotations:
-            description: |
-              The persistent volume {{ $labels.persistentvolume }} {{ with $labels.cluster -}} on Cluster {{ . }} {{- end }} has status {{ $labels.phase }}.
-            summary: PersistentVolume is having issues with provisioning.
-          expr: |
-            kube_persistentvolume_status_phase{phase=~"Failed|Pending",job="kube-state-metrics"}
-            and on(namespace) kube_namespace_labels{label_vshn_net_solution_monitoring="defaults"}
-            * on(namespace) group_left(label_syn_team) kube_namespace_labels
-            > 0
-          for: 5m
           labels:
             severity: warning
             syn: 'true'

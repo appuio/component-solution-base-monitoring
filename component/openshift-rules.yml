@@ -9,9 +9,6 @@ prometheusrule:
     spec:
       groups:
         kubernetes-apps:
-          order:
-            - SYN_KubeDeploymentReplicasMismatch
-            - SYN_KubePodNotScheduled
           rules:
             SYN_KubeDeploymentReplicasMismatch:
               annotations:
@@ -59,20 +56,6 @@ prometheusrule:
     spec:
       groups:
         kubernetes-apps:
-          order:
-            - SYN_KubePodCrashLooping
-            - SYN_KubePodNotReady
-            - SYN_KubeDeploymentGenerationMismatch
-            - SYN_KubeDeploymentRolloutStuck
-            - SYN_KubeStatefulSetReplicasMismatch
-            - SYN_KubeStatefulSetGenerationMismatch
-            - SYN_KubeStatefulSetUpdateNotRolledOut
-            - SYN_KubeDaemonSetRolloutStuck
-            - SYN_KubeContainerWaiting
-            - SYN_KubeDaemonSetNotScheduled
-            - SYN_KubeDaemonSetMisScheduled
-            - SYN_KubeJobNotCompleted
-            - SYN_KubePdbNotEnoughHealthyPods
           rules:
             SYN_KubePodCrashLooping:
               annotations:
@@ -308,12 +291,6 @@ prometheusrule:
     spec:
       groups:
         kubernetes-storage:
-          order:
-            - SYN_KubePersistentVolumeFillingUp
-            - SYN_KubePersistentVolumeFillingUpWarning
-            - SYN_KubePersistentVolumeInodesFillingUp
-            - SYN_KubePersistentVolumeInodesFillingUpWarning
-            - SYN_KubePersistentVolumeErrors
           rules:
             SYN_KubePersistentVolumeFillingUp:
               annotations:

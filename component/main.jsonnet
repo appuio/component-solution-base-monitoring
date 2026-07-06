@@ -67,7 +67,7 @@ local buildManifest(manifestName, manifestData) = {
         name: groupName,
         rules: [
           patchRule(alertName, groupData.rules[alertName])
-          for alertName in groupData.order
+          for alertName in std.objectFields(groupData.rules)
         ],
       }
       for groupName in std.objectFields(manifestData.spec.groups)
