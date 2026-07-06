@@ -23,110 +23,6 @@ spec:
             syn: 'true'
             syn_component: solution-base-monitoring
             syn_team: '{{ $labels.label_syn_team }}'
-        - alert: SYN_KubeDaemonSetMisScheduled
-          annotations:
-            description: |
-              {{ $value }} Pods of DaemonSet {{ $labels.namespace }}/{{ $labels.daemonset }} are running where they are not supposed to run.
-            summary: DaemonSet pods are misscheduled.
-          expr: |
-            kube_daemonset_status_number_misscheduled{job="kube-state-metrics"}
-            and on(namespace) kube_namespace_labels{label_vshn_net_solution_monitoring="defaults"}
-            * on(namespace) group_left(label_syn_team) kube_namespace_labels
-            > 0
-          for: 15m
-          labels:
-            severity: warning
-            syn: 'true'
-            syn_component: solution-base-monitoring
-            syn_team: '{{ $labels.label_syn_team }}'
-        - alert: SYN_KubeDaemonSetNotScheduled
-          annotations:
-            description: |
-              {{ $value }} Pods of DaemonSet {{ $labels.namespace }}/{{ $labels.daemonset }} are not scheduled.
-            summary: DaemonSet pods are not scheduled.
-          expr: |
-            kube_daemonset_status_desired_number_scheduled{job="kube-state-metrics"}
-            and on(namespace) kube_namespace_labels{label_vshn_net_solution_monitoring="defaults"}
-              -
-            kube_daemonset_status_current_number_scheduled{job="kube-state-metrics"}
-            * on(namespace) group_left(label_syn_team) kube_namespace_labels
-            > 0
-          for: 10m
-          labels:
-            severity: warning
-            syn: 'true'
-            syn_component: solution-base-monitoring
-            syn_team: '{{ $labels.label_syn_team }}'
-        - alert: SYN_KubeDaemonSetRolloutStuck
-          annotations:
-            description: |
-              DaemonSet {{ $labels.namespace }}/{{ $labels.daemonset }} has not finished or progressed for at least 30 minutes.
-            summary: DaemonSet rollout is stuck.
-          expr: |
-            (
-              (
-                kube_daemonset_status_current_number_scheduled{job="kube-state-metrics"}
-                and on(namespace) kube_namespace_labels{label_vshn_net_solution_monitoring="defaults"}
-                * on(namespace) group_left(label_syn_team) kube_namespace_labels
-                  !=
-                kube_daemonset_status_desired_number_scheduled{job="kube-state-metrics"}
-              ) or (
-                kube_daemonset_status_number_misscheduled{job="kube-state-metrics"}
-                  !=
-                0
-              ) or (
-                kube_daemonset_status_updated_number_scheduled{job="kube-state-metrics"}
-                  !=
-                kube_daemonset_status_desired_number_scheduled{job="kube-state-metrics"}
-              ) or (
-                kube_daemonset_status_number_available{job="kube-state-metrics"}
-                  !=
-                kube_daemonset_status_desired_number_scheduled{job="kube-state-metrics"}
-              )
-            ) and (
-              changes(kube_daemonset_status_updated_number_scheduled{job="kube-state-metrics"}[5m])
-                ==
-              0
-            )
-          for: 30m
-          labels:
-            severity: warning
-            syn: 'true'
-            syn_component: solution-base-monitoring
-            syn_team: '{{ $labels.label_syn_team }}'
-        - alert: SYN_KubeDeploymentGenerationMismatch
-          annotations:
-            description: |
-              Deployment generation for {{ $labels.namespace }}/{{ $labels.deployment }} does not match, this indicates that the Deployment has failed but has not been rolled back.
-            summary: Deployment generation mismatch due to possible roll-back
-          expr: |
-            kube_deployment_status_observed_generation{job="kube-state-metrics"}
-            and on(namespace) kube_namespace_labels{label_vshn_net_solution_monitoring="defaults"}
-            * on(namespace) group_left(label_syn_team) kube_namespace_labels
-              !=
-            kube_deployment_metadata_generation{job="kube-state-metrics"}
-          for: 15m
-          labels:
-            severity: warning
-            syn: 'true'
-            syn_component: solution-base-monitoring
-            syn_team: '{{ $labels.label_syn_team }}'
-        - alert: SYN_KubeDeploymentRolloutStuck
-          annotations:
-            description: |
-              Rollout of deployment {{ $labels.namespace }}/{{ $labels.deployment }} is not progressing for longer than 15 minutes.
-            summary: Deployment rollout is not progressing.
-          expr: |
-            kube_deployment_status_condition{condition="Progressing", status="false",job="kube-state-metrics"}
-            and on(namespace) kube_namespace_labels{label_vshn_net_solution_monitoring="defaults"}
-            * on(namespace) group_left(label_syn_team) kube_namespace_labels
-            != 0
-          for: 15m
-          labels:
-            severity: warning
-            syn: 'true'
-            syn_component: solution-base-monitoring
-            syn_team: '{{ $labels.label_syn_team }}'
         - alert: SYN_KubeJobNotCompleted
           annotations:
             description: |
@@ -205,23 +101,6 @@ spec:
             syn: 'true'
             syn_component: solution-base-monitoring
             syn_team: '{{ $labels.label_syn_team }}'
-        - alert: SYN_KubeStatefulSetGenerationMismatch
-          annotations:
-            description: |
-              StatefulSet generation for {{ $labels.namespace }}/{{ $labels.statefulset }} does not match, this indicates that the StatefulSet has failed but has not been rolled back.
-            summary: StatefulSet generation mismatch due to possible roll-back
-          expr: |
-            kube_statefulset_status_observed_generation{job="kube-state-metrics"}
-            and on(namespace) kube_namespace_labels{label_vshn_net_solution_monitoring="defaults"}
-            * on(namespace) group_left(label_syn_team) kube_namespace_labels
-              !=
-            kube_statefulset_metadata_generation{job="kube-state-metrics"}
-          for: 15m
-          labels:
-            severity: warning
-            syn: 'true'
-            syn_component: solution-base-monitoring
-            syn_team: '{{ $labels.label_syn_team }}'
         - alert: SYN_KubeStatefulSetReplicasMismatch
           annotations:
             description: |
@@ -236,37 +115,6 @@ spec:
               kube_statefulset_replicas{job="kube-state-metrics"}
             ) and (
               changes(kube_statefulset_status_replicas_updated{job="kube-state-metrics"}[10m])
-                ==
-              0
-            )
-          for: 15m
-          labels:
-            severity: warning
-            syn: 'true'
-            syn_component: solution-base-monitoring
-            syn_team: '{{ $labels.label_syn_team }}'
-        - alert: SYN_KubeStatefulSetUpdateNotRolledOut
-          annotations:
-            description: |
-              StatefulSet {{ $labels.namespace }}/{{ $labels.statefulset }} update has not been rolled out.
-            summary: StatefulSet update has not been rolled out.
-          expr: |
-            (
-              max by(namespace, statefulset, job, cluster) (
-                kube_statefulset_status_current_revision{job="kube-state-metrics"}
-                and on(namespace) kube_namespace_labels{label_vshn_net_solution_monitoring="defaults"}
-                  unless
-                kube_statefulset_status_update_revision{job="kube-state-metrics"}
-              )
-                * on(namespace, statefulset, job, cluster)
-              (
-                kube_statefulset_replicas{job="kube-state-metrics"}
-                  !=
-                kube_statefulset_status_replicas_updated{job="kube-state-metrics"}
-              )
-              * on(namespace) group_left(label_syn_team) kube_namespace_labels
-            )  and on(namespace, statefulset, job, cluster) (
-              changes(kube_statefulset_status_replicas_updated{job="kube-state-metrics"}[5m])
                 ==
               0
             )
