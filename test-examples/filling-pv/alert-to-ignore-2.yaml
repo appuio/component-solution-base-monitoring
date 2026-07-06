@@ -1,0 +1,44 @@
+# Cluster-dependent and destructive: fills a PersistentVolumeClaim to trigger SYN_KubePersistentVolumeFillingUp.
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: solution-based-monitoring-ignore-2
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: filling-pv
+  namespace: solution-based-monitoring-ignore-2
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 1Gi
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: filling-pv
+  namespace: solution-based-monitoring-ignore-2
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: failing-app
+  template:
+    metadata:
+      labels:
+        app: failing-app
+    spec:
+      containers:
+        - name: filling-container
+          image: busybox
+          command: ["sh", "-c", "dd if=/dev/zero of=/data/fill bs=1M 2>/dev/null || true; sleep infinity"]
+          volumeMounts:
+            - name: data
+              mountPath: /data
+      volumes:
+        - name: data
+          persistentVolumeClaim:
+            claimName: filling-pv

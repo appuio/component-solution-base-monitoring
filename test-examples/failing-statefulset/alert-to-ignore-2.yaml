@@ -1,0 +1,38 @@
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: solution-based-monitoring-ignore-2
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: failing-statefulset
+  namespace: solution-based-monitoring-ignore-2
+spec:
+  clusterIP: None
+  selector:
+    app: failing-app
+  ports:
+    - port: 80
+      name: web
+---
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: failing-statefulset
+  namespace: solution-based-monitoring-ignore-2
+spec:
+  serviceName: failing-statefulset
+  replicas: 1
+  selector:
+    matchLabels:
+      app: failing-app
+  template:
+    metadata:
+      labels:
+        app: failing-app
+    spec:
+      containers:
+        - name: failing-container
+          image: busybox
+          command: ["sh", "-c", "exit 1"]
