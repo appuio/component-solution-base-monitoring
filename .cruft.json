@@ -7,7 +7,7 @@
       "name": "solution-base-monitoring",
       "slug": "solution-base-monitoring",
       "parameter_key": "solution_base_monitoring",
-      "test_cases": "defaults custom-rules",
+      "test_cases": "defaults custom-rules test-solution-base-monitoring",
       "add_lib": "n",
       "add_pp": "n",
       "add_golden": "y",
