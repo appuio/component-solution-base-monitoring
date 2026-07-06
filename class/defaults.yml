@@ -16,4 +16,4 @@ parameters:
 
     prometheusRules: {}
 
-    alertNamePrefix: SYN
+    alertNamePrefix: SB
