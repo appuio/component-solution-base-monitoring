@@ -4,7 +4,7 @@ metadata:
   name: solution-based-monitoring-fail-do
   labels:
     syn_team: nunki
-    vshn_net_solution_monitoring: "defaults"
+    vshn_net_solution_monitoring: "test-solution-base-monitoring"
 ---
 apiVersion: apps/v1
 kind: Deployment
