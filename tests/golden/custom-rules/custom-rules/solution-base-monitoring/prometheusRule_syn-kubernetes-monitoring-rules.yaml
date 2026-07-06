@@ -49,9 +49,9 @@ spec:
           expr: |
             (
               kube_poddisruptionbudget_status_desired_healthy{job="kube-state-metrics"}
-              and on(namespace) kube_namespace_labels{label_vshn_net_solution_monitoring="custom-rules"}
               -
               kube_poddisruptionbudget_status_current_healthy{job="kube-state-metrics"}
+              and on(namespace) kube_namespace_labels{label_vshn_net_solution_monitoring="custom-rules"}
             )
             * on(namespace) group_left(label_syn_team) kube_namespace_labels
             > 0

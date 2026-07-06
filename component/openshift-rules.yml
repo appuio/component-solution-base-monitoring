@@ -147,9 +147,9 @@ prometheusrule:
               expr: |
                 (
                   kube_poddisruptionbudget_status_desired_healthy{job="kube-state-metrics"}
-                  %(namespaceLabelFilter)s
                   -
                   kube_poddisruptionbudget_status_current_healthy{job="kube-state-metrics"}
+                  %(namespaceLabelFilter)s
                 )
                 %(teamJoin)s
                 > 0
