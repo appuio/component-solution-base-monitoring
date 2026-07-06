@@ -7,7 +7,7 @@ spec:
   groups:
     - name: kubernetes-storage
       rules:
-        - alert: SYN_KubePersistentVolumeFillingUp
+        - alert: SB_KubePersistentVolumeFillingUp
           annotations:
             description: |
               The PersistentVolume claimed by {{ $labels.persistentvolumeclaim }} in Namespace {{ $labels.namespace }} {{ with $labels.cluster -}} on Cluster {{ . }} {{- end }} is only {{ $value | humanizePercentage }} free.
@@ -34,7 +34,7 @@ spec:
             syn: 'true'
             syn_component: solution-base-monitoring
             syn_team: '{{ $labels.label_syn_team }}'
-        - alert: SYN_KubePersistentVolumeFillingUpWarning
+        - alert: SB_KubePersistentVolumeFillingUpWarning
           annotations:
             description: |
               Based on recent sampling, the PersistentVolume claimed by {{ $labels.persistentvolumeclaim }} in Namespace {{ $labels.namespace }} {{ with $labels.cluster -}} on Cluster {{ . }} {{- end }} is expected to fill up within four days. Currently {{ $value | humanizePercentage }} is available.
