@@ -1,0 +1,3 @@
+parameters:
+  solution_base_monitoring:
+    alertNamePrefix: VSHN

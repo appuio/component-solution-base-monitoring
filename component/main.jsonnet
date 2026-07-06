@@ -47,9 +47,12 @@ local teamJoin = '* on(namespace) group_left(label_syn_team) kube_namespace_labe
 local ruleOverrides = params.prometheusRules;
 local prometheusRules = std.mergePatch(openshiftRules.prometheusrule, ruleOverrides);
 
+local alertNamePrefix = params.alertNamePrefix;
+local renderAlertName(alertName) = alertNamePrefix + '_' + alertName;
+
 local patchRule(alertName, r) =
   std.mergePatch(
-    { alert: alertName, labels: defaultRuleLabels },
+    { alert: renderAlertName(alertName), labels: defaultRuleLabels },
     std.mergePatch(r, { expr: r.expr % {
       namespaceLabelFilter: namespaceLabelFilter,
       teamJoin: teamJoin,
