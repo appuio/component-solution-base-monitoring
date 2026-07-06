@@ -32,7 +32,7 @@ local defaultRuleLabels = {
 
 local openshiftRules = std.parseJson(
   kap.yaml_load('solution-base-monitoring/component/openshift-rules.yml')
-).rules;
+);
 
 local monitor_namespaces = params.monitor_namespaces;
 local namespaceLabelFilter = 'and on(namespace) kube_namespace_labels{label_%s="%s"}' % [
@@ -41,31 +41,43 @@ local namespaceLabelFilter = 'and on(namespace) kube_namespace_labels{label_%s="
 ];
 local teamJoin = '* on(namespace) group_left(label_syn_team) kube_namespace_labels';
 
-local patchRule(r) =
+local ruleOverrides = std.get(params, 'prometheusrule', {});
+local prometheusRules = std.mergePatch(openshiftRules.prometheusrule, ruleOverrides);
+
+local patchRule(alertName, r) =
   std.mergePatch(
-    { labels: defaultRuleLabels },
+    { alert: alertName, labels: defaultRuleLabels },
     std.mergePatch(r, { expr: r.expr % {
       namespaceLabelFilter: namespaceLabelFilter,
       teamJoin: teamJoin,
     } }),
   );
 
-local buildManifest(m) =
-  m {
-    metadata+: {
-      namespace: params.namespace,
-    },
-    spec+: {
-      groups: [
-        g { rules: [ patchRule(r) for r in g.rules ] }
-        for g in m.spec.groups
-      ],
-    },
-  };
+local buildManifest(manifestName, manifestData) = {
+  apiVersion: 'monitoring.coreos.com/v1',
+  kind: 'PrometheusRule',
+  metadata: {
+    name: manifestName,
+    namespace: params.namespace,
+  },
+  spec: {
+    groups: [
+      local groupData = manifestData.spec.groups[groupName];
+      {
+        name: groupName,
+        rules: [
+          patchRule(alertName, groupData.rules[alertName])
+          for alertName in groupData.order
+        ],
+      }
+      for groupName in std.objectFields(manifestData.spec.groups)
+    ],
+  },
+};
 
 {
   namespace: namespace,
 } + {
-  ['prometheusRule_%s' % m.metadata.name]: buildManifest(m)
-  for m in openshiftRules
+  ['prometheusRule_%s' % manifestName]: buildManifest(manifestName, prometheusRules[manifestName])
+  for manifestName in std.objectFields(prometheusRules)
 }

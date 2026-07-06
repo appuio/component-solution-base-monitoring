@@ -4,21 +4,16 @@
 # Prometheus alert rules and runbooks; see the `source` field below.
 # See https://github.com/openshift/cluster-monitoring-operator/tree/d8735f252105973f060e7baedd2c42b2e7f31476/assets/cluster-monitoring-operator
 # They are published under the Apache 2.0 License.
-#
-# The `expr` fields contain the placeholders `%(namespaceLabelFilter)s` and
-# `%(teamJoin)s` which are patched at compile time by `component/main.jsonnet`
-# with the per-instance namespace label filter and team join.
-source: https://github.com/openshift/runbooks
-rules:
-  - apiVersion: monitoring.coreos.com/v1
-    kind: PrometheusRule
-    metadata:
-      name: solution-monitoring-operator-prometheus-rules
+prometheusrule:
+  solution-monitoring-operator-prometheus-rules:
     spec:
       groups:
-        - name: kubernetes-apps
+        kubernetes-apps:
+          order:
+            - SYN_KubeDeploymentReplicasMismatch
+            - SYN_KubePodNotScheduled
           rules:
-            - alert: SYN_KubeDeploymentReplicasMismatch
+            SYN_KubeDeploymentReplicasMismatch:
               annotations:
                 description: |
                   Deployment {{ $labels.namespace }}/{{ $labels.deployment }} has not matched the expected number of replicas for longer than 15 minutes.
@@ -45,7 +40,7 @@ rules:
               for: 15m
               labels:
                 severity: warning
-            - alert: SYN_KubePodNotScheduled
+            SYN_KubePodNotScheduled:
               annotations:
                 description: |
                   Pod {{ $labels.namespace }}/{{ $labels.pod }} cannot be scheduled for more than 30 minutes.
@@ -60,15 +55,26 @@ rules:
               for: 30m
               labels:
                 severity: warning
-  - apiVersion: monitoring.coreos.com/v1
-    kind: PrometheusRule
-    metadata:
-      name: syn-kubernetes-monitoring-rules
+  syn-kubernetes-monitoring-rules:
     spec:
       groups:
-        - name: kubernetes-apps
+        kubernetes-apps:
+          order:
+            - SYN_KubePodCrashLooping
+            - SYN_KubePodNotReady
+            - SYN_KubeDeploymentGenerationMismatch
+            - SYN_KubeDeploymentRolloutStuck
+            - SYN_KubeStatefulSetReplicasMismatch
+            - SYN_KubeStatefulSetGenerationMismatch
+            - SYN_KubeStatefulSetUpdateNotRolledOut
+            - SYN_KubeDaemonSetRolloutStuck
+            - SYN_KubeContainerWaiting
+            - SYN_KubeDaemonSetNotScheduled
+            - SYN_KubeDaemonSetMisScheduled
+            - SYN_KubeJobNotCompleted
+            - SYN_KubePdbNotEnoughHealthyPods
           rules:
-            - alert: SYN_KubePodCrashLooping
+            SYN_KubePodCrashLooping:
               annotations:
                 description: |
                   Pod {{ $labels.namespace }}/{{ $labels.pod }} ({{ $labels.container }}) is in waiting state (reason: "CrashLoopBackOff").
@@ -81,7 +87,7 @@ rules:
               for: 15m
               labels:
                 severity: warning
-            - alert: SYN_KubePodNotReady
+            SYN_KubePodNotReady:
               annotations:
                 description: |
                   Pod {{ $labels.namespace }}/{{ $labels.pod }} has been in a non-ready state for longer than 15 minutes.
@@ -102,7 +108,7 @@ rules:
               for: 15m
               labels:
                 severity: warning
-            - alert: SYN_KubeDeploymentGenerationMismatch
+            SYN_KubeDeploymentGenerationMismatch:
               annotations:
                 description: |
                   Deployment generation for {{ $labels.namespace }}/{{ $labels.deployment }} does not match, this indicates that the Deployment has failed but has not been rolled back.
@@ -116,7 +122,7 @@ rules:
               for: 15m
               labels:
                 severity: warning
-            - alert: SYN_KubeDeploymentRolloutStuck
+            SYN_KubeDeploymentRolloutStuck:
               annotations:
                 description: |
                   Rollout of deployment {{ $labels.namespace }}/{{ $labels.deployment }} is not progressing for longer than 15 minutes.
@@ -129,7 +135,7 @@ rules:
               for: 15m
               labels:
                 severity: warning
-            - alert: SYN_KubeStatefulSetReplicasMismatch
+            SYN_KubeStatefulSetReplicasMismatch:
               annotations:
                 description: |
                   StatefulSet {{ $labels.namespace }}/{{ $labels.statefulset }} has not matched the expected number of replicas for longer than 15 minutes.
@@ -149,7 +155,7 @@ rules:
               for: 15m
               labels:
                 severity: warning
-            - alert: SYN_KubeStatefulSetGenerationMismatch
+            SYN_KubeStatefulSetGenerationMismatch:
               annotations:
                 description: |
                   StatefulSet generation for {{ $labels.namespace }}/{{ $labels.statefulset }} does not match, this indicates that the StatefulSet has failed but has not been rolled back.
@@ -163,7 +169,7 @@ rules:
               for: 15m
               labels:
                 severity: warning
-            - alert: SYN_KubeStatefulSetUpdateNotRolledOut
+            SYN_KubeStatefulSetUpdateNotRolledOut:
               annotations:
                 description: |
                   StatefulSet {{ $labels.namespace }}/{{ $labels.statefulset }} update has not been rolled out.
@@ -191,7 +197,7 @@ rules:
               for: 15m
               labels:
                 severity: warning
-            - alert: SYN_KubeDaemonSetRolloutStuck
+            SYN_KubeDaemonSetRolloutStuck:
               annotations:
                 description: |
                   DaemonSet {{ $labels.namespace }}/{{ $labels.daemonset }} has not finished or progressed for at least 30 minutes.
@@ -225,7 +231,7 @@ rules:
               for: 30m
               labels:
                 severity: warning
-            - alert: SYN_KubeContainerWaiting
+            SYN_KubeContainerWaiting:
               annotations:
                 description: |
                   pod/{{ $labels.pod }} in namespace {{ $labels.namespace }} on container {{ $labels.container}} has been in waiting state for longer than 1 hour. (reason: "{{ $labels.reason }}").
@@ -238,7 +244,7 @@ rules:
               for: 1h
               labels:
                 severity: warning
-            - alert: SYN_KubeDaemonSetNotScheduled
+            SYN_KubeDaemonSetNotScheduled:
               annotations:
                 description: |
                   {{ $value }} Pods of DaemonSet {{ $labels.namespace }}/{{ $labels.daemonset }} are not scheduled.
@@ -253,7 +259,7 @@ rules:
               for: 10m
               labels:
                 severity: warning
-            - alert: SYN_KubeDaemonSetMisScheduled
+            SYN_KubeDaemonSetMisScheduled:
               annotations:
                 description: |
                   {{ $value }} Pods of DaemonSet {{ $labels.namespace }}/{{ $labels.daemonset }} are running where they are not supposed to run.
@@ -266,7 +272,7 @@ rules:
               for: 15m
               labels:
                 severity: warning
-            - alert: SYN_KubeJobNotCompleted
+            SYN_KubeJobNotCompleted:
               annotations:
                 description: |
                   Job {{ $labels.namespace }}/{{ $labels.job_name }} is taking more than {{ "43200" | humanizeDuration }} to complete.
@@ -281,7 +287,7 @@ rules:
                 > 43200
               labels:
                 severity: warning
-            - alert: SYN_KubePdbNotEnoughHealthyPods
+            SYN_KubePdbNotEnoughHealthyPods:
               annotations:
                 description: |
                   PDB {{ $labels.namespace }}/{{ $labels.poddisruptionbudget }} expects {{ $value }} more healthy pods. The desired number of healthy pods has not been met for at least 15m.
@@ -298,15 +304,18 @@ rules:
               for: 15m
               labels:
                 severity: warning
-  - apiVersion: monitoring.coreos.com/v1
-    kind: PrometheusRule
-    metadata:
-      name: syn-prometheus
+  syn-prometheus:
     spec:
       groups:
-        - name: kubernetes-storage
+        kubernetes-storage:
+          order:
+            - SYN_KubePersistentVolumeFillingUp
+            - SYN_KubePersistentVolumeFillingUpWarning
+            - SYN_KubePersistentVolumeInodesFillingUp
+            - SYN_KubePersistentVolumeInodesFillingUpWarning
+            - SYN_KubePersistentVolumeErrors
           rules:
-            - alert: SYN_KubePersistentVolumeFillingUp
+            SYN_KubePersistentVolumeFillingUp:
               annotations:
                 description: |
                   The PersistentVolume claimed by {{ $labels.persistentvolumeclaim }} in Namespace {{ $labels.namespace }} {{ with $labels.cluster -}} on Cluster {{ . }} {{- end }} is only {{ $value | humanizePercentage }} free.
@@ -330,7 +339,7 @@ rules:
               for: 1m
               labels:
                 severity: critical
-            - alert: SYN_KubePersistentVolumeFillingUpWarning
+            SYN_KubePersistentVolumeFillingUpWarning:
               annotations:
                 description: |
                   Based on recent sampling, the PersistentVolume claimed by {{ $labels.persistentvolumeclaim }} in Namespace {{ $labels.namespace }} {{ with $labels.cluster -}} on Cluster {{ . }} {{- end }} is expected to fill up within four days. Currently {{ $value | humanizePercentage }} is available.
@@ -356,7 +365,7 @@ rules:
               for: 1h
               labels:
                 severity: warning
-            - alert: SYN_KubePersistentVolumeInodesFillingUp
+            SYN_KubePersistentVolumeInodesFillingUp:
               annotations:
                 description: |
                   The PersistentVolume claimed by {{ $labels.persistentvolumeclaim }} in Namespace {{ $labels.namespace }} {{ with $labels.cluster -}} on Cluster {{ . }} {{- end }} only has {{ $value | humanizePercentage }} free inodes.
@@ -380,7 +389,7 @@ rules:
               for: 1m
               labels:
                 severity: critical
-            - alert: SYN_KubePersistentVolumeInodesFillingUpWarning
+            SYN_KubePersistentVolumeInodesFillingUpWarning:
               annotations:
                 description: |
                   Based on recent sampling, the PersistentVolume claimed by {{ $labels.persistentvolumeclaim }} in Namespace {{ $labels.namespace }} {{ with $labels.cluster -}} on Cluster {{ . }} {{- end }} is expected to run out of inodes within four days. Currently {{ $value | humanizePercentage }} of its inodes are free.
@@ -406,7 +415,7 @@ rules:
               for: 1h
               labels:
                 severity: warning
-            - alert: SYN_KubePersistentVolumeErrors
+            SYN_KubePersistentVolumeErrors:
               annotations:
                 description: |
                   The persistent volume {{ $labels.persistentvolume }} {{ with $labels.cluster -}} on Cluster {{ . }} {{- end }} has status {{ $labels.phase }}.
