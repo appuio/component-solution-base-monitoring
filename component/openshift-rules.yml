@@ -117,8 +117,8 @@ prometheusrule:
                   pod/{{ $labels.pod }} in namespace {{ $labels.namespace }} on container {{ $labels.container}} has been in waiting state for longer than 1 hour. (reason: "{{ $labels.reason }}").
                 summary: Pod container waiting longer than 1 hour
               expr: |
-                kube_pod_container_status_waiting_reason{reason!="CrashLoopBackOff", job="kube-state-metrics"}
-                 %(namespaceLabelFilter)s
+                (kube_pod_container_status_waiting_reason{reason!="CrashLoopBackOff", job="kube-state-metrics"}
+                 %(namespaceLabelFilter)s )
                  %(teamJoin)s
                  > 0
               for: 1h
