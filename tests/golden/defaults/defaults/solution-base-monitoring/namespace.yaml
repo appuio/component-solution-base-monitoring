@@ -3,6 +3,5 @@ kind: Namespace
 metadata:
   annotations: {}
   labels:
-    name: test-solution-base-monitoring
-    'openshift.io/cluster-monitoring': 'true'
-  name: test-solution-base-monitoring
+    name: defaults
+  name: defaults
