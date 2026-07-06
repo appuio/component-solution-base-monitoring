@@ -10,7 +10,7 @@ prometheusrule:
       groups:
         kubernetes-apps:
           rules:
-            SYN_KubeDeploymentReplicasMismatch:
+            KubeDeploymentReplicasMismatch:
               annotations:
                 description: |
                   Deployment {{ $labels.namespace }}/{{ $labels.deployment }} has not matched the expected number of replicas for longer than 15 minutes.
@@ -37,7 +37,7 @@ prometheusrule:
               for: 15m
               labels:
                 severity: warning
-            SYN_KubePodNotScheduled:
+            KubePodNotScheduled:
               annotations:
                 description: |
                   Pod {{ $labels.namespace }}/{{ $labels.pod }} cannot be scheduled for more than 30 minutes.
@@ -57,7 +57,7 @@ prometheusrule:
       groups:
         kubernetes-apps:
           rules:
-            SYN_KubePodCrashLooping:
+            KubePodCrashLooping:
               annotations:
                 description: |
                   Pod {{ $labels.namespace }}/{{ $labels.pod }} ({{ $labels.container }}) is in waiting state (reason: "CrashLoopBackOff").
@@ -70,7 +70,7 @@ prometheusrule:
               for: 15m
               labels:
                 severity: warning
-            SYN_KubePodNotReady:
+            KubePodNotReady:
               annotations:
                 description: |
                   Pod {{ $labels.namespace }}/{{ $labels.pod }} has been in a non-ready state for longer than 15 minutes.
@@ -91,7 +91,7 @@ prometheusrule:
               for: 15m
               labels:
                 severity: warning
-            SYN_KubeStatefulSetReplicasMismatch:
+            KubeStatefulSetReplicasMismatch:
               annotations:
                 description: |
                   StatefulSet {{ $labels.namespace }}/{{ $labels.statefulset }} has not matched the expected number of replicas for longer than 15 minutes.
@@ -114,7 +114,7 @@ prometheusrule:
               for: 15m
               labels:
                 severity: warning
-            SYN_KubeContainerWaiting:
+            KubeContainerWaiting:
               annotations:
                 description: |
                   pod/{{ $labels.pod }} in namespace {{ $labels.namespace }} on container {{ $labels.container}} has been in waiting state for longer than 1 hour. (reason: "{{ $labels.reason }}").
@@ -127,7 +127,7 @@ prometheusrule:
               for: 1h
               labels:
                 severity: warning
-            SYN_KubeJobNotCompleted:
+            KubeJobNotCompleted:
               annotations:
                 description: |
                   Job {{ $labels.namespace }}/{{ $labels.job_name }} is taking more than {{ "43200" | humanizeDuration }} to complete.
@@ -142,7 +142,7 @@ prometheusrule:
                 > 43200
               labels:
                 severity: warning
-            SYN_KubePdbNotEnoughHealthyPods:
+            KubePdbNotEnoughHealthyPods:
               annotations:
                 description: |
                   PDB {{ $labels.namespace }}/{{ $labels.poddisruptionbudget }} expects {{ $value }} more healthy pods. The desired number of healthy pods has not been met for at least 15m.
@@ -164,7 +164,7 @@ prometheusrule:
       groups:
         kubernetes-storage:
           rules:
-            SYN_KubePersistentVolumeFillingUp:
+            KubePersistentVolumeFillingUp:
               annotations:
                 description: |
                   The PersistentVolume claimed by {{ $labels.persistentvolumeclaim }} in Namespace {{ $labels.namespace }} {{ with $labels.cluster -}} on Cluster {{ . }} {{- end }} is only {{ $value | humanizePercentage }} free.
@@ -188,7 +188,7 @@ prometheusrule:
               for: 1m
               labels:
                 severity: critical
-            SYN_KubePersistentVolumeFillingUpWarning:
+            KubePersistentVolumeFillingUpWarning:
               annotations:
                 description: |
                   Based on recent sampling, the PersistentVolume claimed by {{ $labels.persistentvolumeclaim }} in Namespace {{ $labels.namespace }} {{ with $labels.cluster -}} on Cluster {{ . }} {{- end }} is expected to fill up within four days. Currently {{ $value | humanizePercentage }} is available.

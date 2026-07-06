@@ -6,10 +6,10 @@ parameters:
           groups:
             kubernetes-apps:
               rules:
-                SYN_KubePodCrashLooping:
+                KubePodCrashLooping:
                   for: 5m
                   labels:
                     severity: critical
-                SYN_KubePodNotReady:
+                KubePodNotReady:
                   annotations:
                     summary: 'Pod has been in a non-ready state for more than 15 minutes (custom).'
