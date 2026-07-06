@@ -1,0 +1,15 @@
+parameters:
+  solution_base_monitoring:
+    prometheusRules:
+      syn-kubernetes-monitoring-rules:
+        spec:
+          groups:
+            kubernetes-apps:
+              rules:
+                SYN_KubePodCrashLooping:
+                  for: 5m
+                  labels:
+                    severity: critical
+                SYN_KubePodNotReady:
+                  annotations:
+                    summary: 'Pod has been in a non-ready state for more than 15 minutes (custom).'

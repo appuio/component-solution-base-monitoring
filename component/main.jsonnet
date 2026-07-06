@@ -41,7 +41,7 @@ local namespaceLabelFilter = 'and on(namespace) kube_namespace_labels{label_%s="
 ];
 local teamJoin = '* on(namespace) group_left(label_syn_team) kube_namespace_labels';
 
-local ruleOverrides = std.get(params, 'prometheusrule', {});
+local ruleOverrides = params.prometheusRules;
 local prometheusRules = std.mergePatch(openshiftRules.prometheusrule, ruleOverrides);
 
 local patchRule(alertName, r) =
