@@ -29,8 +29,8 @@ spec:
                 ==
               0
             )) * on() group_left cluster:control_plane:all_nodes_ready)
-             * on(namespace) group_left(label_syn_team) kube_namespace_labels
-             > 0
+            * on(namespace) group_left(label_syn_team) kube_namespace_labels
+            > 0
           for: 15m
           labels:
             severity: warning
