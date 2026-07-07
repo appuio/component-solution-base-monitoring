@@ -31,7 +31,10 @@ local defaultRuleLabels = {
 };
 
 local openshiftRules = std.parseJson(
-  kap.yaml_load('solution-base-monitoring/component/openshift-rules.yml')
+  kap.yaml_load(
+    local parts = std.split(std.thisFile, '/');
+    std.join('/', parts[:std.length(parts) - 1]) + '/openshift-rules.yml'
+  )
 );
 
 local monitor_namespaces = params.monitor_namespaces;
