@@ -14,9 +14,9 @@ spec:
             summary: Pod container waiting longer than 1 hour
           expr: |
             (kube_pod_container_status_waiting_reason{reason!="CrashLoopBackOff", job="kube-state-metrics"}
-             and on(namespace) kube_namespace_labels{label_vshn_net_solution_monitoring="test-solution-base-monitoring"} )
-             * on(namespace) group_left(label_syn_team) kube_namespace_labels
-             > 0
+            and on(namespace) kube_namespace_labels{label_vshn_net_solution_monitoring="test-solution-base-monitoring"} )
+            * on(namespace) group_left(label_syn_team) kube_namespace_labels
+            > 0
           for: 1h
           labels:
             severity: warning
@@ -33,7 +33,7 @@ spec:
               and
             kube_job_status_active{job="kube-state-metrics"}
             and on(namespace) kube_namespace_labels{label_vshn_net_solution_monitoring="test-solution-base-monitoring"}
-             > 0)
+            > 0)
             * on(namespace) group_left(label_syn_team) kube_namespace_labels
             > 43200
           labels:
@@ -68,9 +68,9 @@ spec:
             summary: Pod is crash looping.
           expr: |
             (max_over_time(kube_pod_container_status_waiting_reason{reason="CrashLoopBackOff", job="kube-state-metrics"}[5m])
-             and on(namespace) kube_namespace_labels{label_vshn_net_solution_monitoring="test-solution-base-monitoring"} )
-             * on(namespace) group_left(label_syn_team) kube_namespace_labels
-             >= 1
+            and on(namespace) kube_namespace_labels{label_vshn_net_solution_monitoring="test-solution-base-monitoring"} )
+            * on(namespace) group_left(label_syn_team) kube_namespace_labels
+            >= 1
           for: 15m
           labels:
             severity: warning

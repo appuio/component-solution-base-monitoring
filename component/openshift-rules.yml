@@ -32,8 +32,8 @@ prometheusrule:
                     ==
                   0
                 )) * on() group_left cluster:control_plane:all_nodes_ready)
-                 %(teamJoin)s
-                 > 0
+                %(teamJoin)s
+                > 0
               for: 15m
               labels:
                 severity: warning
@@ -64,9 +64,9 @@ prometheusrule:
                 summary: Pod is crash looping.
               expr: |
                 (max_over_time(kube_pod_container_status_waiting_reason{reason="CrashLoopBackOff", job="kube-state-metrics"}[5m])
-                 %(namespaceLabelFilter)s )
-                 %(teamJoin)s
-                 >= 1
+                %(namespaceLabelFilter)s )
+                %(teamJoin)s
+                >= 1
               for: 15m
               labels:
                 severity: warning
@@ -121,9 +121,9 @@ prometheusrule:
                 summary: Pod container waiting longer than 1 hour
               expr: |
                 (kube_pod_container_status_waiting_reason{reason!="CrashLoopBackOff", job="kube-state-metrics"}
-                 %(namespaceLabelFilter)s )
-                 %(teamJoin)s
-                 > 0
+                %(namespaceLabelFilter)s )
+                %(teamJoin)s
+                > 0
               for: 1h
               labels:
                 severity: warning
@@ -137,7 +137,7 @@ prometheusrule:
                   and
                 kube_job_status_active{job="kube-state-metrics"}
                 %(namespaceLabelFilter)s
-                 > 0)
+                > 0)
                 %(teamJoin)s
                 > 43200
               labels:
