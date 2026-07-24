@@ -29,11 +29,15 @@ spec:
               Job {{ $labels.namespace }}/{{ $labels.job_name }} is taking more than {{ "43200" | humanizeDuration }} to complete.
             summary: Job did not complete in time
           expr: |
-            time() - max by(namespace, job_name, cluster) (kube_job_status_start_time{job="kube-state-metrics"}
-              and
-            kube_job_status_active{job="kube-state-metrics"} > 0
-            and on(namespace) kube_namespace_labels{label_vshn_net_solution_monitoring="custom-rules"}
-            > 0)
+            (
+              time() - max by (namespace, job_name, cluster) (
+                kube_job_status_start_time{job="kube-state-metrics"}
+                and
+                ( kube_job_status_active{job="kube-state-metrics"} > 0 )
+                and on(namespace) kube_namespace_labels{label_vshn_net_solution_monitoring="custom-rules"}
+                > 0
+              )
+            )
             * on(namespace) group_left(label_syn_team) kube_namespace_labels
             > 43200
           labels:
