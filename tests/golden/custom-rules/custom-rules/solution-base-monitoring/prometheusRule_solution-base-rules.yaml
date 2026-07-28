@@ -1,0 +1,192 @@
+apiVersion: monitoring.coreos.com/v1
+kind: PrometheusRule
+metadata:
+  name: solution-base-rules
+  namespace: custom-rules
+spec:
+  groups:
+    - name: resource-rules
+      rules:
+        - alert: SB_KubeContainerCPURequestsTooHigh
+          annotations:
+            description: |
+              Container {{ $labels.container }} in pod {{ $labels.namespace }}/{{ $labels.pod }} consistently uses less than 20% of its CPU request.
+              The CPU request may be too high and could be reduced to free up schedulable resources.
+            summary: Container CPU request is too high.
+          expr: |
+            (
+              (
+                (
+                  sum by (namespace, pod, container, cluster) (
+                    rate(container_cpu_usage_seconds_total{container!="",container!="POD",job="kubelet",metrics_path="/metrics/cadvisor"}[5m])
+                  )
+                  and on(namespace) kube_namespace_labels{label_vshn_net_solution_monitoring="custom-rules"}
+                )
+                /
+                on (namespace, pod, container, cluster)
+                sum by (namespace, pod, container, cluster) (
+                  kube_pod_container_resource_requests{resource="cpu", job="kube-state-metrics"}
+                )
+              ) < 0.2
+              and on (namespace, pod, container, cluster)
+              (
+                sum by (namespace, pod, container, cluster) (
+                  kube_pod_container_resource_requests{resource="cpu", job="kube-state-metrics"}
+                ) > 0
+              )
+            )
+            * on(namespace) group_left(label_syn_team) kube_namespace_labels
+          for: 36h
+          labels:
+            severity: warning
+            syn: 'true'
+            syn_component: solution-base-monitoring
+            syn_team: '{{ $labels.label_syn_team }}'
+        - alert: SB_KubeContainerCPUUsageHigh
+          annotations:
+            description: |
+              Container {{ $labels.container }} in pod {{ $labels.namespace }}/{{ $labels.pod }} is using more than 90% of its CPU limit for more than 30 minutes.
+              This container is likely being CPU throttled. Consider raising the CPU limit or investigating the CPU usage.
+            summary: Container CPU usage is above 90% of its limit.
+          expr: |
+            (
+              (
+                (
+                  sum by (namespace, pod, container, cluster) (
+                    rate(container_cpu_usage_seconds_total{container!="",container!="POD",job="kubelet",metrics_path="/metrics/cadvisor"}[5m])
+                  )
+                  and on(namespace) kube_namespace_labels{label_vshn_net_solution_monitoring="custom-rules"}
+                )
+                /
+                on (namespace, pod, container, cluster)
+                sum by (namespace, pod, container, cluster) (
+                  container_spec_cpu_quota{container!="",container!="POD",job="kubelet",metrics_path="/metrics/cadvisor"}
+                  /
+                  container_spec_cpu_period{container!="",container!="POD",job="kubelet",metrics_path="/metrics/cadvisor"}
+                )
+              ) > 0.9
+              and on (namespace, pod, container, cluster)
+              (
+                sum by (namespace, pod, container, cluster) (
+                  container_spec_cpu_quota{container!="",container!="POD",job="kubelet",metrics_path="/metrics/cadvisor"}
+                ) > 0
+              )
+            )
+            * on(namespace) group_left(label_syn_team) kube_namespace_labels
+          for: 30m
+          labels:
+            severity: warning
+            syn: 'true'
+            syn_component: solution-base-monitoring
+            syn_team: '{{ $labels.label_syn_team }}'
+        - alert: SB_KubeContainerMemoryRequestsTooHigh
+          annotations:
+            description: |
+              Container {{ $labels.container }} in pod {{ $labels.namespace }}/{{ $labels.pod }} consistently uses less than 20% of its memory request.
+              The memory request may be too high and could be reduced to free up schedulable resources.
+            summary: Container memory request is too high.
+          expr: |
+            (
+              (
+                (
+                  sum by (namespace, pod, container, cluster) (
+                    container_memory_working_set_bytes{container!="",container!="POD",job="kubelet",metrics_path="/metrics/cadvisor"}
+                  )
+                  and on(namespace) kube_namespace_labels{label_vshn_net_solution_monitoring="custom-rules"}
+                )
+                /
+                on (namespace, pod, container, cluster)
+                sum by (namespace, pod, container, cluster) (
+                  kube_pod_container_resource_requests{resource="memory", job="kube-state-metrics"}
+                )
+              ) < 0.2
+              and on (namespace, pod, container, cluster)
+              (
+                sum by (namespace, pod, container, cluster) (
+                  kube_pod_container_resource_requests{resource="memory", job="kube-state-metrics"}
+                ) > 0
+              )
+            )
+            * on(namespace) group_left(label_syn_team) kube_namespace_labels
+          for: 36h
+          labels:
+            severity: warning
+            syn: 'true'
+            syn_component: solution-base-monitoring
+            syn_team: '{{ $labels.label_syn_team }}'
+        - alert: SB_KubeContainerMemoryUsageHigh
+          annotations:
+            description: |
+              Container {{ $labels.container }} in pod {{ $labels.namespace }}/{{ $labels.pod }} is using more than 90% of its memory limit for more than 30 minutes.
+              This container is at risk of being OOMKilled. Consider raising the memory limit or investigating the memory usage.
+            summary: Container memory usage is above 90% of its limit.
+          expr: |
+            (
+              (
+                (
+                  sum by (namespace, pod, container, cluster) (
+                    container_memory_working_set_bytes{container!="",container!="POD",job="kubelet",metrics_path="/metrics/cadvisor"}
+                  )
+                  and on(namespace) kube_namespace_labels{label_vshn_net_solution_monitoring="custom-rules"}
+                )
+                /
+                on (namespace, pod, container, cluster)
+                sum by (namespace, pod, container, cluster) (
+                  container_spec_memory_limit_bytes{container!="",container!="POD",job="kubelet",metrics_path="/metrics/cadvisor"}
+                )
+              ) > 0.9
+              and on (namespace, pod, container, cluster)
+              (
+                sum by (namespace, pod, container, cluster) (
+                  container_spec_memory_limit_bytes{container!="",container!="POD",job="kubelet",metrics_path="/metrics/cadvisor"}
+                ) > 0
+              )
+            )
+            * on(namespace) group_left(label_syn_team) kube_namespace_labels
+          for: 30m
+          labels:
+            severity: warning
+            syn: 'true'
+            syn_component: solution-base-monitoring
+            syn_team: '{{ $labels.label_syn_team }}'
+        - alert: SB_KubeContainerOOMKilled
+          annotations:
+            description: |
+              Container {{ $labels.container }} in pod {{ $labels.namespace }}/{{ $labels.pod }} was OOMKilled.
+              The container's last termination reason was OOMKilled. This usually indicates that the container exceeded its memory limit or the node was under memory pressure.
+              Inspect the pod with: oc describe -n {{ $labels.namespace }} pod {{ $labels.pod }}
+            summary: Container was OOMKilled.
+          expr: |
+            (max_over_time(kube_pod_container_status_last_terminated_reason{reason="OOMKilled", job="kube-state-metrics"}[5m])
+            and on(namespace) kube_namespace_labels{label_vshn_net_solution_monitoring="custom-rules"} )
+            * on(namespace) group_left(label_syn_team) kube_namespace_labels
+            >= 1
+          for: 15m
+          labels:
+            severity: warning
+            syn: 'true'
+            syn_component: solution-base-monitoring
+            syn_team: '{{ $labels.label_syn_team }}'
+    - name: status-rules
+      rules:
+        - alert: SB_KubeContainerReadinessFlap
+          annotations:
+            description: |
+              Container {{ $labels.container }} in pod {{ $labels.namespace }}/{{ $labels.pod }} is flapping between ready and not ready.
+              The readiness state changed repeatedly within the last 15 minutes and the container is currently not ready.
+              Check the readiness probe configuration and the container's dependencies.
+            summary: Container readiness is flapping.
+          expr: |
+            (
+              (changes(kube_pod_container_status_ready{job="kube-state-metrics"}[15m]) >= 4)
+              and on(namespace) kube_namespace_labels{label_vshn_net_solution_monitoring="custom-rules"}
+              and on (namespace, pod, container, cluster)
+              (kube_pod_container_status_ready{job="kube-state-metrics"} == 0)
+            )
+            * on(namespace) group_left(label_syn_team) kube_namespace_labels
+          for: 15m
+          labels:
+            severity: warning
+            syn: 'true'
+            syn_component: solution-base-monitoring
+            syn_team: '{{ $labels.label_syn_team }}'
