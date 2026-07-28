@@ -15,7 +15,7 @@ spec:
           expr: |
             (kube_pod_container_status_waiting_reason{reason!="CrashLoopBackOff", job="kube-state-metrics"}
             and on(namespace) kube_namespace_labels{label_vshn_net_solution_monitoring="test-solution-base-monitoring"} )
-            * on(namespace) group_left(label_syn_team) kube_namespace_labels
+            * on(namespace) group_left(label_syn_team) (max by (namespace, label_syn_team) (kube_namespace_labels))
             > 0
           for: 1h
           labels:
@@ -38,7 +38,7 @@ spec:
                 > 0
               )
             )
-            * on(namespace) group_left(label_syn_team) kube_namespace_labels
+            * on(namespace) group_left(label_syn_team) (max by (namespace, label_syn_team) (kube_namespace_labels))
             > 43200
           labels:
             severity: warning
@@ -57,7 +57,7 @@ spec:
               kube_poddisruptionbudget_status_current_healthy{job="kube-state-metrics"}
               and on(namespace) kube_namespace_labels{label_vshn_net_solution_monitoring="test-solution-base-monitoring"}
             )
-            * on(namespace) group_left(label_syn_team) kube_namespace_labels
+            * on(namespace) group_left(label_syn_team) (max by (namespace, label_syn_team) (kube_namespace_labels))
             > 0
           for: 15m
           labels:
@@ -73,7 +73,7 @@ spec:
           expr: |
             (max_over_time(kube_pod_container_status_waiting_reason{reason="CrashLoopBackOff", job="kube-state-metrics"}[5m])
             and on(namespace) kube_namespace_labels{label_vshn_net_solution_monitoring="test-solution-base-monitoring"} )
-            * on(namespace) group_left(label_syn_team) kube_namespace_labels
+            * on(namespace) group_left(label_syn_team) (max by (namespace, label_syn_team) (kube_namespace_labels))
             >= 1
           for: 15m
           labels:
@@ -97,7 +97,7 @@ spec:
                 1, max by(namespace, pod, owner_kind, cluster) (kube_pod_owner{owner_kind!="Job"})
               )
             )
-            * on(namespace) group_left(label_syn_team) kube_namespace_labels
+            * on(namespace) group_left(label_syn_team) (max by (namespace, label_syn_team) (kube_namespace_labels))
             > 0
           for: 15m
           labels:
@@ -124,7 +124,7 @@ spec:
                 0
               )
             )
-            * on(namespace) group_left(label_syn_team) kube_namespace_labels
+            * on(namespace) group_left(label_syn_team) (max by (namespace, label_syn_team) (kube_namespace_labels))
           for: 15m
           labels:
             severity: warning

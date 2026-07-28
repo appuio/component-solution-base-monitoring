@@ -35,7 +35,7 @@ spec:
                 ) > 0
               )
             )
-            * on(namespace) group_left(label_syn_team) kube_namespace_labels
+            * on(namespace) group_left(label_syn_team) (max by (namespace, label_syn_team) (kube_namespace_labels))
           for: 36h
           labels:
             severity: warning
@@ -72,7 +72,7 @@ spec:
                 ) > 0
               )
             )
-            * on(namespace) group_left(label_syn_team) kube_namespace_labels
+            * on(namespace) group_left(label_syn_team) (max by (namespace, label_syn_team) (kube_namespace_labels))
           for: 30m
           labels:
             severity: warning
@@ -107,7 +107,7 @@ spec:
                 ) > 0
               )
             )
-            * on(namespace) group_left(label_syn_team) kube_namespace_labels
+            * on(namespace) group_left(label_syn_team) (max by (namespace, label_syn_team) (kube_namespace_labels))
           for: 36h
           labels:
             severity: warning
@@ -142,7 +142,7 @@ spec:
                 ) > 0
               )
             )
-            * on(namespace) group_left(label_syn_team) kube_namespace_labels
+            * on(namespace) group_left(label_syn_team) (max by (namespace, label_syn_team) (kube_namespace_labels))
           for: 30m
           labels:
             severity: warning
@@ -157,10 +157,17 @@ spec:
               Inspect the pod with: oc describe -n {{ $labels.namespace }} pod {{ $labels.pod }}
             summary: Container was OOMKilled.
           expr: |
-            (max_over_time(kube_pod_container_status_last_terminated_reason{reason="OOMKilled", job="kube-state-metrics"}[5m])
-            and on(namespace) kube_namespace_labels{label_vshn_net_solution_monitoring="custom-prefix"} )
-            * on(namespace) group_left(label_syn_team) kube_namespace_labels
-            >= 1
+            (
+              (
+                (kube_pod_container_status_restarts_total{job="kube-state-metrics"}
+                and on(namespace) kube_namespace_labels{label_vshn_net_solution_monitoring="custom-prefix"})
+                -
+                (kube_pod_container_status_restarts_total{job="kube-state-metrics"} offset 10m)
+              ) >= 1
+              and ignoring(reason)
+              (min_over_time(kube_pod_container_status_last_terminated_reason{reason="OOMKilled", job="kube-state-metrics"}[10m]) == 1)
+            )
+            * on(namespace) group_left(label_syn_team) (max by (namespace, label_syn_team) (kube_namespace_labels))
           for: 15m
           labels:
             severity: warning
@@ -183,7 +190,7 @@ spec:
               and on (namespace, pod, container, cluster)
               (kube_pod_container_status_ready{job="kube-state-metrics"} == 0)
             )
-            * on(namespace) group_left(label_syn_team) kube_namespace_labels
+            * on(namespace) group_left(label_syn_team) (max by (namespace, label_syn_team) (kube_namespace_labels))
           for: 15m
           labels:
             severity: warning
