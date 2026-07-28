@@ -42,7 +42,7 @@ local namespaceLabelFilter = 'and on(namespace) kube_namespace_labels{label_%s="
   monitor_namespaces.label,
   monitor_namespaces.label_value,
 ];
-local teamJoin = '* on(namespace) group_left(label_syn_team) kube_namespace_labels';
+local teamJoin = '* on(namespace) group_left(label_syn_team) (max by (namespace, label_syn_team) (kube_namespace_labels))';
 
 local ruleOverrides = params.prometheusRules;
 local prometheusRules = std.mergePatch(openshiftRules.prometheusrule, ruleOverrides);

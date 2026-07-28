@@ -29,7 +29,7 @@ spec:
                 ==
               0
             )) * on() group_left cluster:control_plane:all_nodes_ready)
-            * on(namespace) group_left(label_syn_team) kube_namespace_labels
+            * on(namespace) group_left(label_syn_team) (max by (namespace, label_syn_team) (kube_namespace_labels))
             > 0
           for: 15m
           labels:
@@ -47,7 +47,7 @@ spec:
           expr: |
             (last_over_time(kube_pod_status_unschedulable[5m])
             and on(namespace) kube_namespace_labels{label_vshn_net_solution_monitoring="custom-rules"} )
-            * on(namespace) group_left(label_syn_team) kube_namespace_labels
+            * on(namespace) group_left(label_syn_team) (max by (namespace, label_syn_team) (kube_namespace_labels))
               == 1
           for: 30m
           labels:

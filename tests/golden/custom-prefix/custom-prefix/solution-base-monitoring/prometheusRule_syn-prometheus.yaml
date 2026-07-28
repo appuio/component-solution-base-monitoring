@@ -29,7 +29,7 @@ spec:
               unless on(cluster, namespace, persistentvolumeclaim)
               kube_persistentvolumeclaim_labels{label_alerts_k8s_io_kube_persistent_volume_filling_up="disabled"} == 1
             )
-            * on(namespace) group_left(label_syn_team) kube_namespace_labels
+            * on(namespace) group_left(label_syn_team) (max by (namespace, label_syn_team) (kube_namespace_labels))
           for: 1m
           labels:
             severity: critical
@@ -60,7 +60,7 @@ spec:
               unless on(cluster, namespace, persistentvolumeclaim)
               kube_persistentvolumeclaim_labels{label_alerts_k8s_io_kube_persistent_volume_filling_up="disabled"} == 1
             )
-            * on(namespace) group_left(label_syn_team) kube_namespace_labels
+            * on(namespace) group_left(label_syn_team) (max by (namespace, label_syn_team) (kube_namespace_labels))
           for: 1h
           labels:
             severity: warning
